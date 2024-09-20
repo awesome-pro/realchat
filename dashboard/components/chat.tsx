@@ -53,7 +53,7 @@ const Chat: React.FC = () => {
   };
 
   const joinChat = () => {
-    const newSocket = new WebSocket('ws://realchat-nakw.onrender.com/message');
+    const newSocket = new WebSocket('ws://localhost:3000/message');
     setSocket(newSocket);
   };
 

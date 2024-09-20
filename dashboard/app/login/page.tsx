@@ -17,7 +17,7 @@ function AuthPage() {
     const createUser = async(username: string) => {
       setLoading(true)
       try {
-        const res = await axios.post("https://realchat-nakw.onrender.com/users/", {username})
+        const res = await axios.post("http://localhost:8000/users/", {username})
         const data = res.data
         toast.success("User created")
         router.push(`http://localhost:3000/${data.id}`)
@@ -46,7 +46,7 @@ function AuthPage() {
                 <label htmlFor='username' className='block'>Username</label>
                 <input disabled={loading} type='text' id='username' className='w-full border border-gray-300 rounded px-3 py-2' />
                 </div>
-                <Button disabled={loading} type='submit' className='bg-blue-500 text-white rounded px-3 py-2'>Login</Button>
+                <Button size={'lg'} disabled={loading} type='submit' className='bg-blue-500 text-white rounded px-3 py-2 w-28'>Login</Button>
             </form>
             </div>
         </div>

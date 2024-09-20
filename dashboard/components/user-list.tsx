@@ -11,13 +11,14 @@ interface UserListProps {
 const UserList: FC<UserListProps> = ({ users, selectUser }) => {
   return (
     <div className="relative">
-      <h3 className="text-2xl font-semibold">Select a user to chat with</h3>
+      <h3 className="text-2xl font-semibold top-1 mb-5">Users List</h3>
       <ul className="flex flex-col gap-3">
         {users.map(user => (
           <li key={user.id} onClick={() => selectUser(user)} className={cn(
-            "text-white bg-teal-700  p-3  gap-3 max-w-[80%] rounded-lg cursor-pointer hover:bg-teal-600",
+            "text-white bg-teal-700  p-3  gap-3 max-w-[80%] rounded-lg cursor-pointer hover:bg-teal-600 relative",
           )}>
-            {user.username}
+            {user.username} 
+            <span className="text-sm absolute right-5 text-center">{user.id}</span>
           </li>
         ))}
       </ul>

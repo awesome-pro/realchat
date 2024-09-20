@@ -60,7 +60,17 @@ class ConnectionManager:
             print(f"User {receiver_id} is not connected")
             if sender_id in self.active_connections:
                 sender_ws = self.active_connections[sender_id]
-                await sender_ws.send_text(json.dumps({"isMe": True, "data": "User is not connected", "username": "You"}))
+                await sender_ws.send_text(json.dumps({"isMe": True, "data": "Message sent, but User not Active", "username": "You"}))
+
+                # Save the message to the database
+                db = SessionLocal()
+                db_chat = models.Chat(sender_id=sender_id, receiver_id=receiver_id, message=message)
+                print(f"Saving message: {db_chat}")
+                db.add(db_chat)
+                db.commit()
+                db.refresh(db_chat)
+                db.close()
+
 
     def disconnect(self, user_id: int):
         """Disconnect a user."""
@@ -72,15 +82,21 @@ class ConnectionManager:
 
 app = FastAPI()
 
-origin = "https://realchat-mauve.vercel.app/"
+origin = [
+    "http://localhost",
+    "http://localhost:8080",
+    "http://localhost:3000",
+    "http://localhost:8000",
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[origin],
+    allow_origins=origin,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.get("/")
 async def read_root():
@@ -195,7 +211,12 @@ async def create_chat(chat: ChatBase, db: db_dependency):
 
 # get all chats in the database
 @app.get("/chats/")
-async def get_chats(db: db_dependency):
+async def get_chats(request: Request, db: db_dependency):
+  # if sender and receiver query parameters are provided, return chats between the two users
+  if 'sender' in request.query_params and 'receiver' in request.query_params:
+    sender = request.query_params['sender']
+    receiver = request.query_params['receiver']
+    return db.query(models.Chat).filter(models.Chat.sender_id == sender, models.Chat.receiver_id == receiver).all()
   return db.query(models.Chat).all()
 
 # get all chats when the sender is the user with the given user_id, and the receiver is the user with the given receiver_id
