@@ -17,7 +17,7 @@ function OlderUser() {
   const fetchUsers = useCallback(async() => {
     setLoading(true)  
      try {
-      const res = await axios.get("http://localhost:8000/users/")
+      const res = await axios.get("https://realchat-nakw.onrender.com/users")
       setUsers(res.data)
      } catch (error: any) {
       console.log(error.message )

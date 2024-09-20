@@ -72,7 +72,7 @@ class ConnectionManager:
 
 app = FastAPI()
 
-origin = "http://localhost:3000"
+origin = "https://realchat-mauve.vercel.app/"
 
 app.add_middleware(
     CORSMiddleware,

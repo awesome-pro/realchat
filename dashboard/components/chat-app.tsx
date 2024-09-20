@@ -27,7 +27,7 @@ const Chat: React.FC<ChatProps> = ({ senderId, receiver }) => {
     // Clear previous messages when senderId or receiver.id changes
     setMessages([]);
 
-    const socket = new WebSocket(`ws://localhost:8000/ws/${senderId}/${receiver.id}`);
+    const socket = new WebSocket(`ws://realchat-nakw.onrender.com/ws/${senderId}/${receiver.id}`);
     setWs(socket);
 
     socket.onopen = () => {

@@ -30,7 +30,7 @@ export default function Home(
   const getUsers = useCallback(async() => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:8000/users');
+      const response = await axios.get('https://realchat-nakw.onrender.com/users/');
       setUsers(response.data);
     } catch (error: any) {
       console.error('Error fetching users: ', error);
