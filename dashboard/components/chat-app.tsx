@@ -53,8 +53,6 @@ const Chat: React.FC<ChatProps> = ({ senderId, receiver }) => {
     setWs(socket);
 
     socket.onopen = () => {
-      toast.success('WebSocket connection established');
-      console.log('WebSocket connection established');
       setInfo('WebSocket connection established');
     };
 
@@ -81,7 +79,6 @@ const Chat: React.FC<ChatProps> = ({ senderId, receiver }) => {
     };
 
     return () => {
-      toast.info('Closing WebSocket connection');
       socket.close();
     };
   }, [senderId, receiver.id]); // Refresh WebSocket and messages when senderId or receiver.id changes
@@ -104,12 +101,15 @@ const Chat: React.FC<ChatProps> = ({ senderId, receiver }) => {
 
   return (
     <div className='w-full h-full p-3 relative flex flex-col items-baseline justify-normal bg-blue-700/20'>
-      <h2 className='text-xs'>Chat with
-        <span className='text-lg font-semibold text-blue-700'> {receiver.username}</span>
-      </h2>
+      <div className='w-full flex items-center justify-between'>
+        <h2 className='text-xs'>Chat with
+          <span className='text-lg font-semibold text-blue-700'> {receiver.username}</span>
+        </h2>
+        <p className='text-xs text-gray-600'>{info}</p>
+      </div>
       <br />
       <div className='w-full messages-list '>
-        {previousChat.map((msg, index) => (
+        {/* {previousChat.map((msg, index) => (
           <div key={index} className={cn(
             'p-2 m-2 max-w-[90%] rounded-lg flex w-full',
             msg.sender_id === senderId ? 'bg-blue-400/30  items-start text-start pr-20' : 'bg-gray-100/90 text-black items-end text-right pl-[30%]'
@@ -124,7 +124,7 @@ const Chat: React.FC<ChatProps> = ({ senderId, receiver }) => {
               }
             </div>
           </div>
-        ))}
+        ))} */}
 
         {messages.map((msg, index) => (
           <div key={index} className={cn(

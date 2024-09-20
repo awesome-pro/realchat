@@ -1,4 +1,6 @@
-# Real-Time Messaging App
+# Real-Time Messaging 
+
+<img src="/dashboard/public/image.gif" width="600px" />
 
 ## Overview
 
