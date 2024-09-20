@@ -4,7 +4,6 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from dataclasses import dataclass
 from typing import Dict, Annotated
-import uuid
 import json
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -13,8 +12,6 @@ from database import engine, SessionLocal
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
-
-templates = Jinja2Templates(directory="templates")
 
 @dataclass
 class ConnectionManager:
@@ -85,7 +82,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+@app.get("/")
+async def read_root():
+    return {"message": "App is running perfectly fine  :)"}
+
 connection_manager = ConnectionManager()
 
 
@@ -159,10 +159,6 @@ def get_db():
 
 db_dependency = Annotated[Session, Depends(get_db)]
 
-
-@app.get("/join", response_class=HTMLResponse)
-def get_room(request: Request):
-  return templates.TemplateResponse("room.html", {"request": request});
 
 # CRUD operations
 
