@@ -1,0 +1,109 @@
+# Python-related
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.env
+*.venv
+*.egg
+*.egg-info/
+dist/
+build/
+*.log
+pip-log.txt
+*.sqlite3
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+bin/
+lib/
+local/
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# Logs and temp files
+*.log
+*.pid
+*.seed
+*.cover
+*.pyc
+
+# Mac OS related
+.DS_Store
+*.AppleDouble
+.LSOverride
+
+# Docker
+*.db
+docker-compose.override.yml
+
+# Environments
+.env
+*.env.*
+
+# Pytest
+.cache/
+coverage/
+*.cover
+coverage.xml
+
+# Mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pylint
+pylint.log
+
+# Uvicorn log files
+*.log
+gunicorn-error.log
+uvicorn.log
+
+
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*.local
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+

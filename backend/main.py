@@ -1,0 +1,213 @@
+from fastapi import FastAPI, WebSocket, Request, WebSocketDisconnect, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from dataclasses import dataclass
+from typing import Dict, Annotated
+import uuid
+import json
+from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
+import models
+from database import engine, SessionLocal
+from sqlalchemy.orm import Session
+from pydantic import BaseModel
+
+
+templates = Jinja2Templates(directory="templates")
+
+@dataclass
+class ConnectionManager:
+    def __init__(self) -> None:
+        # Store connections based on user_id for private chats
+        self.active_connections: Dict[int, WebSocket] = {}
+
+    async def connect(self, websocket: WebSocket, user_id: int):
+        """Connect a user to the WebSocket."""
+        try:
+            print(f"User {user_id} connected")
+            await websocket.accept()
+            self.active_connections[user_id] = websocket
+            await self.send_message(websocket, json.dumps({"isMe": True, "data": "You have joined!!", "username": "You"}))
+        except WebSocketDisconnect:
+            print(f"WebSocket connection for User {user_id} was closed prematurely during connection.")
+            self.disconnect(user_id)
+        except Exception as e:
+            print(f"Error during WebSocket connection for User {user_id}: {e}")
+
+    async def send_message(self, ws: WebSocket, message: str):
+        """Send a message to a specific WebSocket."""
+        try:
+            await ws.send_text(message)
+        except WebSocketDisconnect:
+            print("WebSocket disconnected during send_message.")
+        except Exception as e:
+            print(f"Error while sending message: {e}")
+
+    async def send_private_message(self, sender_id: int, receiver_id: int, message: str, username: str):
+        """Send a private message from sender to receiver."""
+        if receiver_id in self.active_connections:
+            try:
+                print(f"User {receiver_id} is connected")
+                receiver_ws = self.active_connections[receiver_id]
+                sender_ws = self.active_connections[sender_id]
+
+                await receiver_ws.send_text(json.dumps({"isMe": False, "data": message, "username": username}))
+                await sender_ws.send_text(json.dumps({"isMe": True, "data": message, "username": "You"}))
+            except WebSocketDisconnect:
+                print(f"WebSocket disconnected while sending a private message to User {receiver_id}.")
+                self.disconnect(receiver_id)
+            except Exception as e:
+                print(f"Error while sending private message: {e}")
+        else:
+            print(f"User {receiver_id} is not connected")
+            if sender_id in self.active_connections:
+                sender_ws = self.active_connections[sender_id]
+                await sender_ws.send_text(json.dumps({"isMe": True, "data": "User is not connected", "username": "You"}))
+
+    def disconnect(self, user_id: int):
+        """Disconnect a user."""
+        if user_id in self.active_connections:
+            del self.active_connections[user_id]
+            print(f"User {user_id} disconnected")
+
+
+
+app = FastAPI()
+
+origin = "http://localhost:3000"
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[origin],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+connection_manager = ConnectionManager()
+
+
+@app.websocket("/ws/{sender_id}/{receiver_id}")
+async def websocket_endpoint(websocket: WebSocket, sender_id: int, receiver_id: int):
+    # Connect the sender
+    await connection_manager.connect(websocket, sender_id)
+
+    try:
+        while True:
+            # Receive message from the sender
+            data = await websocket.receive_text()
+            print(f"Received message: {data}")
+            # Parse the message data (assuming it's JSON)
+            message_data = json.loads(data)
+            message = message_data.get("message")
+
+            # Send the message privately to the intended receiver
+            await connection_manager.send_private_message(sender_id, receiver_id, message, username=str(sender_id))
+
+            # Save the message to the database
+            db = SessionLocal()
+            db_chat = models.Chat(sender_id=sender_id, receiver_id=receiver_id, message=message)
+            print(f"Saving message: {db_chat}")
+            db.add(db_chat)
+            db.commit()
+            db.refresh(db_chat)
+            db.close()
+
+    except WebSocketDisconnect:
+        # Handle disconnection
+        print(f"User {sender_id} disconnected.")
+        connection_manager.disconnect(sender_id)
+    except Exception as e:
+        print(f"Error in WebSocket endpoint: {e}")
+
+
+@app.websocket("/message")
+async def websocket_endpoint(websocket: WebSocket):
+  # Accept the connection from the client.
+  await connection_manager.connect(websocket)
+
+  try:
+    while True:
+      # Recieves message from the client
+      data = await websocket.receive_text()
+      await connection_manager.broadcast(websocket, data)
+  except WebSocketDisconnect:
+    id = await connection_manager.disconnect(websocket)
+    return RedirectResponse("/")
+
+
+models.Base.metadata.create_all(bind=engine)
+
+class UserBase(BaseModel):
+  username: str
+
+
+class ChatBase(BaseModel):
+  sender_id: int
+  receiver_id: int
+  message: str
+
+def get_db():
+  db = SessionLocal()
+  try:
+    yield db
+  finally:
+    db.close()
+
+
+db_dependency = Annotated[Session, Depends(get_db)]
+
+
+@app.get("/join", response_class=HTMLResponse)
+def get_room(request: Request):
+  return templates.TemplateResponse("room.html", {"request": request});
+
+# CRUD operations
+
+# get all users
+@app.get("/users/")
+async def get_users(db: db_dependency):
+  return db.query(models.User).all()
+
+@app.post("/users/")
+async def create_user(user: UserBase, db: db_dependency):
+    existing_user = db.query(models.User).filter(models.User.username == user.username).first()
+    if existing_user:
+        # Return previous chats
+        previous_chats = db.query(models.Chat).filter(
+            (models.Chat.sender_id == existing_user.id) | 
+            (models.Chat.receiver_id == existing_user.id)
+        ).all()
+        return {"message": "User already exists", "previous_chats": previous_chats}
+    
+    db_user = models.User(username=user.username)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+
+@app.post("/chats/")
+async def create_chat(chat: ChatBase, db: db_dependency):
+  db_chat = models.Chat(**chat.dict())
+  db.add(db_chat)
+  db.commit()
+  db.refresh(db_chat)
+  return db_chat
+
+# get all chats in the database
+@app.get("/chats/")
+async def get_chats(db: db_dependency):
+  return db.query(models.Chat).all()
+
+# get all chats when the sender is the user with the given user_id, and the receiver is the user with the given receiver_id
+@app.get("/chats/{sender_id}/{receiver_id}")
+async def get_chats(sender_id: int, receiver_id: int, db: db_dependency):
+  return db.query(models.Chat).filter(models.Chat.sender_id == sender_id, models.Chat.receiver_id == receiver_id).all()
+
+
+@app.get("/users/{user_id}")
+async def get_user(user_id: int, db: db_dependency):
+  return db.get(models.User, user_id)
