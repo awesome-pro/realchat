@@ -31,7 +31,7 @@ function AuthPage() {
 
 
   return (
-    <section className='w-screen min-h-screen relative'>
+    <section className='w-full h-full relative'>
         <div className='flex justify-center items-center'>
             <div className='w-96 lg:mt-60'>
             <h1 className='text-3xl font-bold mb-6'>Login to<strong className='ml-4 font-semibold text-primary/80'>ChatApp</strong>

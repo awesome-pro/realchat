@@ -1,17 +1,23 @@
 "use client";
 
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
-import { use, useCallback, useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import { Button } from './ui/button';
 import axios from 'axios';
+import { Send } from 'lucide-react';
+import { useParams, useSearchParams } from 'next/navigation';
+import React, { useCallback, useEffect, useState } from 'react'
+import { toast } from 'sonner';
 
-interface ChatProps {
-  senderId: number;
-  receiver: { id: number; username: string };
-}
+function ChatIDpage() {
 
-const Chat: React.FC<ChatProps> = ({ senderId, receiver }) => {
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const userID = params.id as string;
+  const receiverID = searchParams.get('receiver') as string;
+  const recieverName = searchParams.get('receivername') as string;
+
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState<string>('');
   const [ws, setWs] = useState<WebSocket | null>(null);
@@ -21,35 +27,35 @@ const Chat: React.FC<ChatProps> = ({ senderId, receiver }) => {
   const [error, setError] = useState<string | null>(null);
 
 
-  const fetchPreviousChats = useCallback(async (sender_id: string, reciever_id: string) => {
-    setLoading(true);
-    try {
-      const res = await axios.get(`http://localhost:8000/chats?sender=${sender_id}&receiver=${reciever_id}`);
-      const data = res.data;
-      console.log(data);
-      setPreviousChat(data);
-    } catch (error: any) {
-      console.error('Error fetching previous chats: ', error);
-      setError('An error occurred while fetching previous chats: ' + error.toString());
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  // const fetchPreviousChats = useCallback(async (sender_id: string, reciever_id: string) => {
+  //   setLoading(true);
+  //   try {
+  //     const res = await axios.get(`http://localhost:8000/chats?sender=${us}&receiver=${reciever_id}`);
+  //     const data = res.data;
+  //     console.log(data);
+  //     setPreviousChat(data);
+  //   } catch (error: any) {
+  //     console.error('Error fetching previous chats: ', error);
+  //     setError('An error occurred while fetching previous chats: ' + error.toString());
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }, []);
 
   // Request permission for browser notifications
-  useEffect(() => {
-    if (Notification.permission !== 'granted') {
-      Notification.requestPermission();
-    }
+  // useEffect(() => {
+  //   if (Notification.permission !== 'granted') {
+  //     Notification.requestPermission();
+  //   }
 
-    fetchPreviousChats(senderId.toString(), receiver.id.toString());
-  }, [fetchPreviousChats, receiver.id, senderId]);
+  //   fetchPreviousChats(userID as string, receiverID as string);
+  // }, [fetchPreviousChats, receiverID, userID]);
 
   useEffect(() => {
     // Clear previous messages when senderId or receiver.id changes
     setMessages([]);
 
-    const socket = new WebSocket(`ws://localhost:8000/ws/${senderId}/${receiver.id}`);
+    const socket = new WebSocket(`ws://localhost:8000/ws/${userID}/${receiverID}`);
     setWs(socket);
 
     socket.onopen = () => {
@@ -81,13 +87,13 @@ const Chat: React.FC<ChatProps> = ({ senderId, receiver }) => {
     return () => {
       socket.close();
     };
-  }, [senderId, receiver.id]); // Refresh WebSocket and messages when senderId or receiver.id changes
+  }, [userID, receiverID]); // Refresh WebSocket and messages when senderId or receiver.id changes
 
   const sendMessage = async () => {
     if (ws && input.trim()) {
       const message = {
-        sender_id: senderId,
-        receiver_id: receiver.id,
+        sender_id: userID,
+        receiver_id: receiverID,
         message: input.trim(),
       };
 
@@ -100,18 +106,13 @@ const Chat: React.FC<ChatProps> = ({ senderId, receiver }) => {
   };
 
   return (
-    <div className='w-full h-full p-3 relative flex flex-col items-baseline justify-normal bg-blue-700/20'>
-      <div className='w-full flex items-center justify-between'>
-        <h2 className='text-xs'>Chat with
-          <span className='text-lg font-semibold text-blue-700'> {receiver.username}</span>
-        </h2>
-        <p className='text-xs text-gray-600'>{info}</p>
-      </div>
-      <div className='w-full messages-list text-black'>
-        test
-      
-       {
-        receiver ? (
+    <section className='w-full h-full flex flex-col justify-between'>
+       <header className='pl-10 py-8 bg-blue-600 text-white'>
+          <h1 className='text-2xl font-bold'>Chat with <strong>{recieverName}</strong></h1>
+       </header>
+      <div>
+      {
+      receiverID ? (
           messages.map((msg, index) => (
             <div key={index} className={cn(
               'p-2 m-2 max-w-[90%] rounded-lg flex w-full',
@@ -127,29 +128,33 @@ const Chat: React.FC<ChatProps> = ({ senderId, receiver }) => {
                 }
                 
               </div>
-            </div>
+            </div >
           ))
-        ) : 
-        (
-          <div className='text-center text-red-500'>Select a user to chat with</div>
-        )
-       }
+      ) : (
+      <div className='text-2xl text-center font-semibold'>
+          Select a user to chat with
       </div>
-      <div className='w-full lg:w-[60%] flex items-center justify-center gap-0 absolute bottom-5 text-black px-5'>
-        <input
-          type="text"
+      )
+    }
+      </div>
+      <div className='flex gap-0  bg-blue-600/20 px-10 py-5 w-full'>
+        <Input
+          placeholder='Type a message'
+          className=''
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyPress={(e) => {
-            if (e.key === 'Enter') sendMessage();
-          }}
-          className='w-full p-2 rounded-r-none'
-          placeholder='Type a message...'
         />
-        <Button onClick={sendMessage} className='rounded-l-none min-w-28'>Send</Button>
+        <Button size={'lg'} className='' onClick={sendMessage}
+         onKeyPress={(e) => {
+          if (e.key === 'Enter') {
+            sendMessage();
+          }
+         }}>
+          Send
+        </Button>
       </div>
-    </div>
-  );
-};
+    </section>
+  )
+}
 
-export default Chat;
+export default ChatIDpage

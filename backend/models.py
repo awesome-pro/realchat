@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Text, DateTime, Table
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
@@ -17,26 +17,27 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(255), unique=True, index=True)
 
-    # Relationships
+    # Relationships for chats
     sent_chats = relationship("Chat", foreign_keys='Chat.sender_id', back_populates="sender")
     received_chats = relationship("Chat", foreign_keys='Chat.receiver_id', back_populates="receiver")
+    
+    # Many-to-many relationship with groups
     groups = relationship('Group', secondary=group_membership, back_populates='members')
 
 class Chat(Base):
-    __tablename__ = 'chats'
-    id = Column(Integer, primary_key=True, index=True)
-    sender_name = Column(String(255))
-    sender_id = Column(Integer, ForeignKey('users.id'))
-    receiver_id = Column(Integer, ForeignKey('users.id'), nullable=True)  # Nullable for group messages
-    group_id = Column(Integer, ForeignKey('groups.id'), nullable=True)  # Nullable for private chats
+    __tablename__ = "chats"
 
-    message = Column(Text)
-    timestamp = Column(DateTime(timezone=True), server_default=func.now())
+    id = Column(Integer, primary_key=True, index=True)
+    sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    receiver_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # Nullable for group messages
+    group_id = Column(Integer, ForeignKey("groups.id"), nullable=True)     # Nullable for private messages
+    message = Column(String, nullable=False)  # Ensure a message is always present
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
     sender = relationship("User", foreign_keys=[sender_id], back_populates="sent_chats")
     receiver = relationship("User", foreign_keys=[receiver_id], back_populates="received_chats")
-    group = relationship("Group", back_populates="chats")
+    group = relationship("Group", back_populates="chats")  # Bidirectional relationship with Group
 
 class Group(Base):
     __tablename__ = 'groups'
@@ -44,5 +45,5 @@ class Group(Base):
     name = Column(String(255), unique=True, index=True)
 
     # Relationships
-    members = relationship('User', secondary=group_membership, back_populates='groups')
-    chats = relationship('Chat', back_populates='group')
+    members = relationship('User', secondary=group_membership, back_populates='groups')  # Many-to-many with users
+    chats = relationship('Chat', back_populates='group')  # One-to-many with chats

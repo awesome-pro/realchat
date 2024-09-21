@@ -81,16 +81,16 @@ class ConnectionManager:
                     await self.send_message(self.active_connections[user_id], json.dumps({"isMe": False, "data": message, "username": username}))
 
     def add_user_to_group(self, group_id: int, user_id: int):
-        """Add a user to a group."""
         if group_id not in self.group_connections:
             self.group_connections[group_id] = []
         if user_id not in self.group_connections[group_id]:
             self.group_connections[group_id].append(user_id)
 
-    def disconnect(self, user_id: int):
-        """Disconnect a user."""
+    def disconnect(self, websocket: WebSocket, user_id: int):
         if user_id in self.active_connections:
-            del self.active_connections[user_id]
+            self.active_connections[user_id].remove(websocket, user_id)
+            if not self.active_connections[user_id]:
+                del self.active_connections[user_id]
             print(f"User {user_id} disconnected")
 
 
@@ -150,7 +150,7 @@ async def websocket_endpoint(websocket: WebSocket, sender_id: int, receiver_id: 
     except WebSocketDisconnect:
         # Handle disconnection
         print(f"User {sender_id} disconnected.")
-        connection_manager.disconnect(sender_id)
+        connection_manager.disconnect(websocket=websocket, sender_id=sender_id)
     except Exception as e:
         print(f"Error in WebSocket endpoint: {e}")
 
@@ -179,24 +179,22 @@ async def websocket_endpoint(websocket: WebSocket, group_id: int, user_id: int):
     try:
         while True:
             data = await websocket.receive_text()
-            print(f"Received message: {data}")
             message_data = json.loads(data)
             message = message_data.get("message")
             sender_id = message_data.get("sender_id")
             sender_name = message_data.get("sender_name")
-            print(f"Sender: {sender_id}, Message: {message} to Group: {group_id}  Sender Name: {sender_name}") 
 
             await connection_manager.broadcast_group_message(group_id, message, username=sender_name)
 
             # db = SessionLocal()
-            # db_chat = models.Chat(sender_id=sender_id, group_id=group_id, message=message, sender_name=sender_name)
+            # db_chat = models.Chat(sender_id=sender_id, group_id=group_id, message=message)
             # db.add(db_chat)
             # db.commit()
             # db.refresh(db_chat)
             # db.close()
 
     except WebSocketDisconnect:
-        connection_manager.disconnect(user_id)
+        connection_manager.disconnect(websocket, user_id)
     except Exception as e:
         print(f"Error in WebSocket endpoint: {e}")
 
