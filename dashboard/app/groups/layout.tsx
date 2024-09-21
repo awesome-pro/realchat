@@ -2,46 +2,29 @@
 
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 import axios from 'axios';
 import { div } from 'framer-motion/client';
 import { PlusCircle, PlusIcon } from 'lucide-react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import React, { useCallback } from 'react'
 import { toast } from 'sonner';
-
-type Group = {
-    id: number,
-    name: string
-    user: [
-        {
-            id: number,
-            name: string
-        }
-    ],
-    chats: [
-        {
-            id: number,
-            message: string,
-            sender_id: number
-            receiver_id: number,
-            created_at: string
-        }
-    ]
-}
 
 
 function GroupLayout(
     { children }: { children: React.ReactNode }
 ) {
-    const [groups, setGroups] = React.useState<Group[]>([]);
-    const [selectedGroup, setSelectedGroup] = React.useState<Group | null>(null);
+    const [groups, setGroups] = React.useState<any[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState('');
     const searchParams = useSearchParams()
-    const userId = searchParams.get('user-id') as string
+    const userId = searchParams.get('userId') as string
     const username = searchParams.get('username') as string
+    const groupID = Number(useParams().id as unknown)
 
     const router = useRouter();
+
+    const [currentGroupID, setCurrentGroupID] = React.useState<number | null>(groupID)
 
     const fetchAllGroups = useCallback(async () => {
         try {
@@ -83,19 +66,29 @@ function GroupLayout(
 
                 {
                     groups.map((group) => (
-                        <Button key={group.id} className='bg-gray-100 p-2 m-2 rounded-md w-[80%]' 
-                            variant={selectedGroup?.id === group.id ? 'default' : 'ghost'}
+                        <Button key={group.id} className={cn(
+                            'lg:w-[80%] m-2',
+                            groupID === group.id ? 'text-white' : 'bg-white text-black'
+                        )} 
+                            variant={groupID === group.id ? 'default' : 'ghost'}
                             onClick={() => {
-                                setSelectedGroup(group)
-                                if(userId && username)
-                                    router.push(`/groups/${group.id}?userId=${userId}?username=${username}`)
+                                setCurrentGroupID(group.id)
+                                if(userId)
+                                    router.push(`/groups/${group.id}?userId=${userId}&username=${username}`)
                                 else{
                                     toast.error('Sign In to view group chats')
                                     router.push('/login')
                                 }
                             }}
                         >
-                            {group.name}
+                            <span className='flex items-center justify-between px-1 w-full'>
+                               <p>
+                               {group.name}
+                               </p>
+                                <p>
+                                {group.id}
+                                </p>
+                            </span>
                         </Button>
                     ))
                 }

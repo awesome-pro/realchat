@@ -2,6 +2,7 @@ from fastapi import FastAPI, WebSocket, Request, WebSocketDisconnect, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.websockets import WebSocketState
 from dataclasses import dataclass
 from typing import Dict, List, Annotated
 import json
@@ -17,7 +18,7 @@ from pydantic import BaseModel
 class ConnectionManager:
     def __init__(self) -> None:
         # Store connections based on user_id for private chats
-        self.active_connections: Dict[int, WebSocket] = {}
+        self.active_connections: Dict[int, List[WebSocket]] = {}
         # Store group connections
         self.group_connections: Dict[int, List[int]] = {}
 
@@ -26,18 +27,23 @@ class ConnectionManager:
         try:
             print(f"User {user_id} connected")
             await websocket.accept()
-            self.active_connections[user_id] = websocket
-            await self.send_message(websocket, json.dumps({"isMe": True, "data": "You have joined!!", "username": "You"}))
+            if user_id not in self.active_connections:
+                self.active_connections[user_id] = []
+            self.active_connections[user_id].append(websocket)
+            await self.send_message(websocket, json.dumps({"data": "You have joined!!", "username": "You"}))
         except WebSocketDisconnect:
             print(f"WebSocket connection for User {user_id} was closed prematurely during connection.")
-            self.disconnect(user_id)
+            self.disconnect(websocket=websocket, user_id=user_id)
         except Exception as e:
             print(f"Error during WebSocket connection for User {user_id}: {e}")
 
     async def send_message(self, ws: WebSocket, message: str):
         """Send a message to a specific WebSocket."""
         try:
-            await ws.send_text(message)
+            # if ws.state == WebSocketState.CONNECTED:
+                await ws.send_text(message)
+            # else:
+               # print("WebSocket is not connected.")
         except WebSocketDisconnect:
             print("WebSocket disconnected during send_message.")
         except Exception as e:
@@ -48,14 +54,16 @@ class ConnectionManager:
         if receiver_id in self.active_connections:
             try:
                 print(f"User {receiver_id} is connected")
-                receiver_ws = self.active_connections[receiver_id]
-                sender_ws = self.active_connections[sender_id]
-
-                await receiver_ws.send_text(json.dumps({"isSeen": True, "data": message, "username": username}))
-                await sender_ws.send_text(json.dumps({"isSeen": True, "data": message, "username": "You"}))
+                for receiver_ws in self.active_connections[receiver_id]:
+                    print(f"Sending message to User {receiver_ws}")
+                    await self.send_message(receiver_ws, json.dumps({"isSeen": True, "data": message, "username": username}))
+                
+                for sender_ws in self.active_connections[sender_id]:
+                    print(f"Sending message to User {sender_ws}")
+                    await self.send_message(sender_ws, json.dumps({"isSeen": True, "data": message, "username": "You"}))
             except WebSocketDisconnect:
                 print(f"WebSocket disconnected while sending a private message to User {receiver_id}.")
-                self.disconnect(receiver_id)
+                self.disconnect(websocket=receiver_ws, user_id=receiver_id)
             except Exception as e:
                 print(f"Error while sending private message: {e}")
         else:
@@ -78,7 +86,10 @@ class ConnectionManager:
         if group_id in self.group_connections:
             for user_id in self.group_connections[group_id]:
                 if user_id in self.active_connections:
-                    await self.send_message(self.active_connections[user_id], json.dumps({"isMe": False, "data": message, "username": username}))
+                    for ws in self.active_connections[user_id]:
+                        print(f"Sending message to User {ws}")
+                        await self.send_message(ws, json.dumps({"group_id": group_id, "data": message, "username": username}))
+
 
     def add_user_to_group(self, group_id: int, user_id: int):
         if group_id not in self.group_connections:
@@ -89,8 +100,9 @@ class ConnectionManager:
     async def disconnect(self, websocket: WebSocket, user_id: int):
         if user_id in self.active_connections and websocket.state:
             try:
+                await self.active_connections[user_id].remove(websocket)
                 # check if the websocket connection is still open
-                if websocket.state:
+                if websocket.state == WebSocketState.CONNECTED:
                     await websocket.close()
             except Exception as e:
                 print(f"Error while closing WebSocket for User {user_id}: {e}")

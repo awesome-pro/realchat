@@ -15,13 +15,9 @@ function GroupIDPage() {
   const userId = searchParams.get('userId')
   const username = searchParams.get('username')
 
-  interface Message {
-    message: string;
-    sender_id: string | null;
-    sender_name: string;
-  }
 
-  const [messages, setMessages] = React.useState<Message[]>([])
+
+  const [messages, setMessages] = React.useState<any[]>([])
   const [message, setMessage] = React.useState('')
   const [info, setInfo] = React.useState<string>('')
 
@@ -29,57 +25,87 @@ function GroupIDPage() {
 
   useEffect(() => {
     if (Notification.permission !== 'granted') {
-        Notification.requestPermission();
+      Notification.requestPermission();
     }
 
-    const ws = new WebSocket(`ws://localhost:8000/group/${groupId}/${userId}`)
-    setSocket(ws)
+    if (groupId && userId) {
+      const ws = new WebSocket(`ws://localhost:8000/group/${groupId}/${userId}`);
 
-    ws.onopen = () => {
-        setInfo('WebSocket connection established')
-    }
+      ws.onopen = () => {
+        console.log('Connected to group chat');
+        setInfo('Connected to group chat');
+      };
 
-    ws.onmessage = (event) => {
-        const messageData = JSON.parse(event.data)
-        setMessages((prevMessages) => [...prevMessages, { ...messageData, sender_name: messageData.sender_name || 'Unknown' }])
-    }
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        setMessages((prevMessages) => [...prevMessages, data]);
+        setInfo('Message received');
+        if (Notification.permission === 'granted') {
+          new Notification(data.username, { body: data.data });
+        }
+      };
 
-    ws.onclose = () => {
-        setInfo('WebSocket connection closed')
-    }
+      ws.onclose = () => {
+        console.log('Disconnected from group chat');
+        setInfo('Disconnected from group chat');
+      };
 
-    return () => {
-        // Cleanup
+      ws.onerror = (error) => {
+        console.error('WebSocket error: ', error);
+        setInfo('WebSocket error');
+      };
+
+      setSocket(ws);
+
+      return () => {
+        ws.close();
+      };
     }
-  }, [groupId, userId])
+  }, [groupId, userId]);
 
   const sendMessage = () => {
     if (socket && message.trim() !== '') {
       const messageData = {
         message,
         sender_id: userId,
-        sender_name: username
-      }
-      socket.send(JSON.stringify(messageData))
-      setMessages((prevMessages) => [...prevMessages, { ...messageData, sender_name: messageData.sender_name || 'Unknown' }])
-      setMessage('')
+        sender_name: username,
+      };
+      socket.send(JSON.stringify(messageData));
+      setMessage('');
     }
-  }
+  };
 
   return (
     <section className='relative w-full h-full flex flex-col items-center justify-start'>
       <div className='flex flex-col items-center w-full'>
+        <h1 className='text-2xl font-bold'>{info}</h1>
         {messages.map((msg, index) => (
-          <div key={index} className={cn(
-            'flex  gap-2 p-2 justify-center',
-            msg.sender_id === userId ? ' items-end text-white ' : 'items-start text-black'
-          )}>
-              <Card className='p-2 msx-w-[80%]'>
-                <p className='text-sm'>{msg.sender_name}</p>
-                <p>{msg.message}</p>
+            <div key={index} className={cn(
+              'w-full flex flex-col justify-between gap-2 px-3',
+              msg.username === username ? 'items-end' : 'items-start'
+            )}>
+              <Card className={cn(
+                'max-w-[80%] min-w-[30%] py-2 px-3 flex items-center justify-between',
+               msg.username === username ? 'bg-blue-600 text-white' : 'bg-gray-200 text-black'
+              )}>
+                <span className='w-[95%] flex gap-2'>
+                  {msg.username}: {msg.data}
+                </span>
+                { msg.isSeen && msg.data !== "You have Joined"  &&
+                  msg.isSeen === "true" ? (
+                    <span className='text-xs text-white'>Seen</span>
+                  ) : (
+                    <span className='text-xs text-white'>
+                      <span>Sent</span>
+                    </span>
+                  )
+                }
               </Card>
-          </div>
-        ))}
+              <Card className='w-[20%] bg-red-500 h-full'>
+
+              </Card>
+            </div >
+          ))}
       </div>
       <div className='flex absolute bottom-2 gap-0 w-[90%]'>
         <Input
