@@ -259,7 +259,7 @@ async def create_group(group: GroupBase, db: db_dependency):
   return db_group
 
 
-@app.get("/groups/{group_id}")
+@app.get("/groups")
 async def get_group(group_id: int, db: db_dependency):
   return db.get(models.Group, group_id)
 

@@ -2,6 +2,11 @@
 
 <img src="https://i.pinimg.com/originals/e3/1b/75/e31b752875679b64fce009922f9f0dda.gif" alt="GIF" width="300" />
 
+## Important Links
+
+1. [Frontend](https://realchat-mauve.vercel.app/)
+3. [Backend Deployment](https://realchat-nakw.onrender.com/)
+2. [Postman Collections](https://ashwini-1346.postman.co/workspace/Ashwini-Workspace~362b564f-b14f-4331-a4f8-1073429e89b7/collection/31971900-92eb52a9-6cbe-439b-938e-8264f01e67d4)
 
 ## Overview
 
