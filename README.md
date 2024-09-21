@@ -1,10 +1,11 @@
 # Real-Time Messaging 
 
-![GIF](https://i.pinimg.com/originals/e3/1b/75/e31b752875679b64fce009922f9f0dda.gif)
+<img src="https://i.pinimg.com/originals/e3/1b/75/e31b752875679b64fce009922f9f0dda.gif" alt="GIF" width="300" />
+
 
 ## Overview
 
-This project is a real-time messaging application, built with scalability and functionality in mind. The app allows users to send real-time messages via their browser and ensures the delivery and storage of messages reliably. While the UI is functional, the focus of this project is on delivering a stable and performant system. The app is built using **FastAPI** for the backend and **Next.js** (TypeScript) for the frontend, with **PostgreSQL** for database storage and **WebSockets** for real-time messaging.
+This project is a real-time messaging application, built with scalability and functionality in mind. The app allows users to send real-time messages via their browser and ensures the delivery and storage of messages reliably. While the UI is functional, the focus of this project is on delivering a stable and performant system. The app is built using **FastAPI** for the backend and **Next.js** (TypeScript) for the front end, with **PostgreSQL** for database storage and **WebSockets** for real-time messaging.
 
 ## Features
 
