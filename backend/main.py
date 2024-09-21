@@ -178,31 +178,25 @@ async def websocket_endpoint(websocket: WebSocket, group_id: int, user_id: int):
     connection_manager.add_user_to_group(group_id, user_id)
     try:
         while True:
-            # Receive message from the sender
             data = await websocket.receive_text()
             print(f"Received message: {data}")
-            # Parse the message data (assuming it's JSON)
             message_data = json.loads(data)
             message = message_data.get("message")
             sender_id = message_data.get("sender_id")
             sender_name = message_data.get("sender_name")
+            print(f"Sender: {sender_id}, Message: {message} to Group: {group_id}  Sender Name: {sender_name}") 
 
-            # Broadcast the message to all the active users of the group
             await connection_manager.broadcast_group_message(group_id, message, username=sender_name)
 
-            # Save the message to the database
-            db = SessionLocal()
-            db_chat = models.Chat(sender_id=sender_id, group_id=group_id, message=message)
-            print(f"Saving message: {db_chat}")
-            db.add(db_chat)
-            db.commit()
-            db.refresh(db_chat)
-            db.close()
+            # db = SessionLocal()
+            # db_chat = models.Chat(sender_id=sender_id, group_id=group_id, message=message, sender_name=sender_name)
+            # db.add(db_chat)
+            # db.commit()
+            # db.refresh(db_chat)
+            # db.close()
 
     except WebSocketDisconnect:
-        # Handle disconnection
-        print(f"User {user_id} disconnected.")
-        connection_manager.disconnect(0)
+        connection_manager.disconnect(user_id)
     except Exception as e:
         print(f"Error in WebSocket endpoint: {e}")
 
