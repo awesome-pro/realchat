@@ -25,12 +25,13 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket, user_id: int):
         """Connect a user to the WebSocket."""
         try:
-            print(f"User {user_id} connected")
             await websocket.accept()
             if user_id not in self.active_connections:
                 self.active_connections[user_id] = []
             self.active_connections[user_id].append(websocket)
+            print(f"Active connections: {self.active_connections}")
             await self.send_message(websocket, json.dumps({"data": "You have joined!!", "username": "You"}))
+            print(f"User {user_id} is connected: {websocket.values}")
         except WebSocketDisconnect:
             print(f"WebSocket connection for User {user_id} was closed prematurely during connection.")
             self.disconnect(websocket=websocket, user_id=user_id)
@@ -51,14 +52,16 @@ class ConnectionManager:
 
     async def send_private_message(self, sender_id: int, receiver_id: int, message: str, username: str):
         """Send a private message from sender to receiver."""
-        if receiver_id in self.active_connections:
+        if receiver_id in self.active_connections.keys():
             try:
                 print(f"User {receiver_id} is connected")
                 for receiver_ws in self.active_connections[receiver_id]:
                     print(f"Sending message to User {receiver_ws}")
+                    print(f"active connections: {self.active_connections[receiver_id]}")
                     await self.send_message(receiver_ws, json.dumps({"isSeen": True, "data": message, "username": username}))
                 
                 for sender_ws in self.active_connections[sender_id]:
+                    print(f"active connections: {self.active_connections[sender_id]}")
                     print(f"Sending message to User {sender_ws}")
                     await self.send_message(sender_ws, json.dumps({"isSeen": True, "data": message, "username": "You"}))
             except WebSocketDisconnect:
@@ -138,7 +141,6 @@ async def read_root():
 
 connection_manager = ConnectionManager()
 
-
 @app.websocket("/ws/{sender_id}/{receiver_id}")
 async def websocket_endpoint(websocket: WebSocket, sender_id: int, receiver_id: int):
     # Connect the sender
@@ -157,13 +159,13 @@ async def websocket_endpoint(websocket: WebSocket, sender_id: int, receiver_id: 
             await connection_manager.send_private_message(sender_id, receiver_id, message, username=str(sender_id))
 
             # Save the message to the database
-            db = SessionLocal()
-            db_chat = models.Chat(sender_id=sender_id, receiver_id=receiver_id, message=message)
-            print(f"Saving message: {db_chat}")
-            db.add(db_chat)
-            db.commit()
-            db.refresh(db_chat)
-            db.close()
+            # db = SessionLocal()
+            # db_chat = models.Chat(sender_id=sender_id, receiver_id=receiver_id, message=message)
+            # print(f"Saving message: {db_chat}")
+            # db.add(db_chat)
+            # db.commit()
+            # db.refresh(db_chat)
+            # db.close()
 
     except WebSocketDisconnect:
         # Handle disconnection

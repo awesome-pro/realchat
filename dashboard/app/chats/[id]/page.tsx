@@ -69,7 +69,7 @@ function ChatIDpage() {
 
       // Show a browser notification if the message is from another user
       if (messageData.username !== 'You' && Notification.permission === 'granted') {
-        new Notification('New message from ' + messageData.username, {
+        new Notification('New message from' + messageData.username, {
           body: messageData.data,
         });
       }
