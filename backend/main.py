@@ -167,6 +167,11 @@ class ChatBase(BaseModel):
   receiver_id: int
   message: str
 
+
+class GroupBase(BaseModel):
+    name: str
+
+
 def get_db():
   db = SessionLocal()
   try:
@@ -230,3 +235,43 @@ async def get_chats(sender_id: int, receiver_id: int, db: db_dependency):
 @app.get("/users/{user_id}")
 async def get_user(user_id: int, db: db_dependency):
   return db.get(models.User, user_id)
+
+
+# groups
+
+# get all the groups
+@app.get("/groups/")
+async def get_groups(db: db_dependency):
+  return db.query(models.Group).all()
+
+@app.post("/groups/")
+async def create_group(group: GroupBase, db: db_dependency):
+  db_group = models.Group(name=group.name)
+  db.add(db_group)
+  db.commit()
+  db.refresh(db_group)
+  return db_group
+
+
+@app.get("/groups/{group_id}")
+async def get_group(group_id: int, db: db_dependency):
+  return db.get(models.Group, group_id)
+
+
+# add a user to a group
+@app.post("/groups/{group_id}/add_user/{user_id}")
+async def add_user_to_group(group_id: int, user_id: int, db: db_dependency):
+  group = db.get(models.Group, group_id)
+  user = db.get(models.User, user_id)
+  group.members.append(user)
+  db.commit()
+  db.refresh(group)
+  return group
+
+
+# get all the users in a group
+@app.get("/groups/{group_id}/users")
+async def get_group_users(group_id: int, db: db_dependency):
+  group = db.get(models.Group, group_id)
+  return group.members
+
