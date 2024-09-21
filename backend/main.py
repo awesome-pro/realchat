@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from dataclasses import dataclass
-from typing import Dict, Annotated
+from typing import Dict, List, Annotated
 import json
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -18,6 +18,8 @@ class ConnectionManager:
     def __init__(self) -> None:
         # Store connections based on user_id for private chats
         self.active_connections: Dict[int, WebSocket] = {}
+        # Store group connections
+        self.group_connections: Dict[int, List[int]] = {}
 
     async def connect(self, websocket: WebSocket, user_id: int):
         """Connect a user to the WebSocket."""
@@ -71,13 +73,25 @@ class ConnectionManager:
                 db.refresh(db_chat)
                 db.close()
 
+    async def broadcast_group_message(self, group_id: int, message: str, username: str):
+        """Broadcast a message to all active users in a group."""
+        if group_id in self.group_connections:
+            for user_id in self.group_connections[group_id]:
+                if user_id in self.active_connections:
+                    await self.send_message(self.active_connections[user_id], json.dumps({"isMe": False, "data": message, "username": username}))
+
+    def add_user_to_group(self, group_id: int, user_id: int):
+        """Add a user to a group."""
+        if group_id not in self.group_connections:
+            self.group_connections[group_id] = []
+        if user_id not in self.group_connections[group_id]:
+            self.group_connections[group_id].append(user_id)
 
     def disconnect(self, user_id: int):
         """Disconnect a user."""
         if user_id in self.active_connections:
             del self.active_connections[user_id]
             print(f"User {user_id} disconnected")
-
 
 
 app = FastAPI()
@@ -140,32 +154,68 @@ async def websocket_endpoint(websocket: WebSocket, sender_id: int, receiver_id: 
     except Exception as e:
         print(f"Error in WebSocket endpoint: {e}")
 
-
-@app.websocket("/message")
+# socket to get all the active users
+@app.websocket("/active_users")
 async def websocket_endpoint(websocket: WebSocket):
-  # Accept the connection from the client.
-  await connection_manager.connect(websocket)
+    await connection_manager.connect(websocket, 0)
+    try:
+        while True:
+            # get all the active users
+            active_users = list(connection_manager.active_connections.keys())
+            print(active_users)
+            await connection_manager.send_message(websocket, json.dumps(active_users))
 
-  try:
-    while True:
-      # Recieves message from the client
-      data = await websocket.receive_text()
-      await connection_manager.broadcast(websocket, data)
-  except WebSocketDisconnect:
-    id = await connection_manager.disconnect(websocket)
-    return RedirectResponse("/")
+    except WebSocketDisconnect:
+        id = await connection_manager.disconnect(websocket)
+        print(f"User {id} disconnected.")
+        return RedirectResponse("/")
 
+
+# socket to send message to all the active users of a group, provided the group id
+@app.websocket("/group/{group_id}/{user_id}")
+async def websocket_endpoint(websocket: WebSocket, group_id: int, user_id: int):
+    await connection_manager.connect(websocket, user_id)
+    connection_manager.add_user_to_group(group_id, user_id)
+    try:
+        while True:
+            # Receive message from the sender
+            data = await websocket.receive_text()
+            print(f"Received message: {data}")
+            # Parse the message data (assuming it's JSON)
+            message_data = json.loads(data)
+            message = message_data.get("message")
+            sender_id = message_data.get("sender_id")
+            sender_name = message_data.get("sender_name")
+
+            # Broadcast the message to all the active users of the group
+            await connection_manager.broadcast_group_message(group_id, message, username=sender_name)
+
+            # Save the message to the database
+            db = SessionLocal()
+            db_chat = models.Chat(sender_id=sender_id, group_id=group_id, message=message)
+            print(f"Saving message: {db_chat}")
+            db.add(db_chat)
+            db.commit()
+            db.refresh(db_chat)
+            db.close()
+
+    except WebSocketDisconnect:
+        # Handle disconnection
+        print(f"User {user_id} disconnected.")
+        connection_manager.disconnect(0)
+    except Exception as e:
+        print(f"Error in WebSocket endpoint: {e}")
 
 models.Base.metadata.create_all(bind=engine)
 
 class UserBase(BaseModel):
-  username: str
+    username: str
 
 
 class ChatBase(BaseModel):
-  sender_id: int
-  receiver_id: int
-  message: str
+    sender_id: int
+    receiver_id: int
+    message: str
 
 
 class GroupBase(BaseModel):
@@ -173,11 +223,11 @@ class GroupBase(BaseModel):
 
 
 def get_db():
-  db = SessionLocal()
-  try:
-    yield db
-  finally:
-    db.close()
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 db_dependency = Annotated[Session, Depends(get_db)]
@@ -189,12 +239,12 @@ db_dependency = Annotated[Session, Depends(get_db)]
 @app.get("/users")
 # if id query parameter is provided, return the user with that id
 async def get_users(request: Request, db: db_dependency):
-  if 'id' in request.query_params:
-    user_id = request.query_params['id']
-    return db.query(models.User).filter(models.User.id == user_id).all()
-  
-  # return all users
-  return db.query(models.User).all()
+    if 'id' in request.query_params:
+        user_id = request.query_params['id']
+        return db.query(models.User).filter(models.User.id == user_id).all()
+
+    # return all users
+    return db.query(models.User).all()
 
 @app.post("/users/")
 async def create_user(user: UserBase, db: db_dependency):
@@ -216,68 +266,76 @@ async def create_user(user: UserBase, db: db_dependency):
 
 @app.post("/chats/")
 async def create_chat(chat: ChatBase, db: db_dependency):
-  db_chat = models.Chat(**chat.dict())
-  db.add(db_chat)
-  db.commit()
-  db.refresh(db_chat)
-  return db_chat
+    db_chat = models.Chat(**chat.dict())
+    db.add(db_chat)
+    db.commit()
+    db.refresh(db_chat)
+    return db_chat
 
 # get all chats in the database
 @app.get("/chats/")
 async def get_chats(request: Request, db: db_dependency):
-  # if sender and receiver query parameters are provided, return chats between the two users
-  if 'sender' in request.query_params and 'receiver' in request.query_params:
-    sender = request.query_params['sender']
-    receiver = request.query_params['receiver']
-    return db.query(models.Chat).filter(models.Chat.sender_id == sender, models.Chat.receiver_id == receiver).all()
-  return db.query(models.Chat).all()
+    # if sender and receiver query parameters are provided, return chats between the two users
+    if 'sender' in request.query_params and 'receiver' in request.query_params:
+        sender = request.query_params['sender']
+        receiver = request.query_params['receiver']
+        return db.query(models.Chat).filter(models.Chat.sender_id == sender, models.Chat.receiver_id == receiver).all()
+    return db.query(models.Chat).all()
 
 # get all chats when the sender is the user with the given user_id, and the receiver is the user with the given receiver_id
 @app.get("/chats/{sender_id}/{receiver_id}")
 async def get_chats(sender_id: int, receiver_id: int, db: db_dependency):
-  return db.query(models.Chat).filter(models.Chat.sender_id == sender_id, models.Chat.receiver_id == receiver_id).all()
+    return db.query(models.Chat).filter(models.Chat.sender_id == sender_id, models.Chat.receiver_id == receiver_id).all()
 
 
 @app.get("/users/{user_id}")
 async def get_user(user_id: int, db: db_dependency):
-  return db.get(models.User, user_id)
+    return db.get(models.User, user_id)
 
 
 # groups
 
 # get all the groups
-@app.get("/groups/")
+@app.get("/groups")
 async def get_groups(db: db_dependency):
-  return db.query(models.Group).all()
+    return db.query(models.Group).all()
 
-@app.post("/groups/")
+@app.post("/groups")
 async def create_group(group: GroupBase, db: db_dependency):
-  db_group = models.Group(name=group.name)
-  db.add(db_group)
-  db.commit()
-  db.refresh(db_group)
-  return db_group
-
+    # if a group with the same name already exists, return that group
+    existing_group = db.query(models.Group).filter(models.Group.name == group.name).first()
+    if existing_group:
+        return existing_group
+    
+    db_group = models.Group(name=group.name)
+    db.add(db_group)
+    db.commit()
+    db.refresh(db_group)
+    return db_group
 
 @app.get("/groups")
-async def get_group(group_id: int, db: db_dependency):
-  return db.get(models.Group, group_id)
-
+# if id query parameter is provided, return the group with that id
+async def get_groups(request: Request, db: db_dependency):
+    if 'id' in request.query_params:
+        group_id = request.query_params['id']
+        return db.query(models.Group).filter(models.Group.id == group_id).all()
+    
+    # return all groups
+    return db.query(models.Group).all()
 
 # add a user to a group
 @app.post("/groups/{group_id}/add_user/{user_id}")
 async def add_user_to_group(group_id: int, user_id: int, db: db_dependency):
-  group = db.get(models.Group, group_id)
-  user = db.get(models.User, user_id)
-  group.members.append(user)
-  db.commit()
-  db.refresh(group)
-  return group
+    group = db.get(models.Group, group_id)
+    user = db.get(models.User, user_id)
+    group.members.append(user)
+    db.commit()
+    db.refresh(group)
+    return group
 
 
 # get all the users in a group
 @app.get("/groups/{group_id}/users")
 async def get_group_users(group_id: int, db: db_dependency):
-  group = db.get(models.Group, group_id)
-  return group.members
-
+    group = db.get(models.Group, group_id)
+    return group.members
