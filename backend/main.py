@@ -86,7 +86,7 @@ class ConnectionManager:
 
     async def broadcast_group_message(self, group_id: int, message: str, username: str):
         """Broadcast a message to all active users in a group."""
-        if group_id in self.group_connections:
+        if group_id in self.group_connections.keys():
             for user_id in self.group_connections[group_id]:
                 if user_id in self.active_connections:
                     for ws in self.active_connections[user_id]:
