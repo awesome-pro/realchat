@@ -186,8 +186,14 @@ db_dependency = Annotated[Session, Depends(get_db)]
 # CRUD operations
 
 # get all users
-@app.get("/users/")
-async def get_users(db: db_dependency):
+@app.get("/users")
+# if id query parameter is provided, return the user with that id
+async def get_users(request: Request, db: db_dependency):
+  if 'id' in request.query_params:
+    user_id = request.query_params['id']
+    return db.query(models.User).filter(models.User.id == user_id).all()
+  
+  # return all users
   return db.query(models.User).all()
 
 @app.post("/users/")
