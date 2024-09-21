@@ -18,6 +18,7 @@ This project is a real-time messaging application, built with scalability and fu
 - Users can log in by choosing a username.
 - Once logged in, the system lists all active users.
 
+
 ### Real-Time Messaging
 - Users can select another active user and start a real-time chat.
 - Messages are delivered instantly between users using **WebSockets**.

@@ -51,7 +51,7 @@ function ChatLayout(
             <div className='w-full text-2xl flex items-start gap-5 mt-4 ml-2'>
                     <Button className='text-white bg-primary/50' size={'icon'} variant={'ghost'}
                      onClick={() => {
-                        router.push('/dashboard')
+                        router.push(`/features?id=${userId}&username=${username}`)
                      }}
                     >
                           <ArrowLeftIcon size={20} className='mx-2'/>

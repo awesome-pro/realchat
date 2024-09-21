@@ -34,15 +34,15 @@ function LoginLayout(
     fetchUsers()
   }, [fetchUsers])
   return (
-    <section className='w-screen h-screen flex flex-col lg:flex-row'>
+    <section className='w-screen max-h-screen flex flex-col lg:flex-row'>
         <section className='w-[50%] h-full'>
             {children}
         </section>
         <section className='w-[50%] h-full bg-primary/90 text-white'>
-            <h1 className='text-4xl font-bold text-center my-10'>Welcome to <strong>Chat App</strong></h1>
-            <p className='text-center'>Continue as Registers User</p>
-
-            <nav className='w-[90%] h-full flex flex-col items-center mt-7'>
+            <p className='text-center'>OR</p>
+            <h1 className='text-4xl font-bold text-center my-10'>Continue as Registered User</h1>
+            
+            <nav className='w-[90%] h-full flex flex-col items-center mt-7 overflow-y-scroll'>
                 {
                     loading
                     ? (
@@ -57,7 +57,7 @@ function LoginLayout(
                         users.map((user) => (
                             <Button variant={'outline'} key={user.id} className='p-3 h-16  text-primary w-[50%] m-2 cursor-pointer z-20' onClick={() => {
                                 toast.success(`Signed in as ${user.username}`)
-                                router.push(`http://localhost:3000/${user.id}`)
+                                router.push(`http://localhost:3000/features?id=${user.id}&username=${user.username}`)
                             }}>
                                 {user.username}
                             </Button>
