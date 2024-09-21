@@ -51,8 +51,8 @@ class ConnectionManager:
                 receiver_ws = self.active_connections[receiver_id]
                 sender_ws = self.active_connections[sender_id]
 
-                await receiver_ws.send_text(json.dumps({"isMe": False, "data": message, "username": username}))
-                await sender_ws.send_text(json.dumps({"isMe": True, "data": message, "username": "You"}))
+                await receiver_ws.send_text(json.dumps({"isSeen": True, "data": message, "username": username}))
+                await sender_ws.send_text(json.dumps({"isSeen": True, "data": message, "username": "You"}))
             except WebSocketDisconnect:
                 print(f"WebSocket disconnected while sending a private message to User {receiver_id}.")
                 self.disconnect(receiver_id)
@@ -62,16 +62,16 @@ class ConnectionManager:
             print(f"User {receiver_id} is not connected")
             if sender_id in self.active_connections:
                 sender_ws = self.active_connections[sender_id]
-                await sender_ws.send_text(json.dumps({"isMe": True, "data": "Message sent, but User not Active", "username": "You"}))
+                await sender_ws.send_text(json.dumps({"isSeen": False, "data": message, "username": "You"}))
 
                 # Save the message to the database
-                db = SessionLocal()
-                db_chat = models.Chat(sender_id=sender_id, receiver_id=receiver_id, message=message)
-                print(f"Saving message: {db_chat}")
-                db.add(db_chat)
-                db.commit()
-                db.refresh(db_chat)
-                db.close()
+                # db = SessionLocal()
+                # db_chat = models.Chat(sender_id=sender_id, receiver_id=receiver_id, message=message)
+                # print(f"Saving message: {db_chat}")
+                # db.add(db_chat)
+                # db.commit()
+                # db.refresh(db_chat)
+                # db.close()
 
     async def broadcast_group_message(self, group_id: int, message: str, username: str):
         """Broadcast a message to all active users in a group."""
@@ -86,12 +86,18 @@ class ConnectionManager:
         if user_id not in self.group_connections[group_id]:
             self.group_connections[group_id].append(user_id)
 
-    def disconnect(self, websocket: WebSocket, user_id: int):
-        if user_id in self.active_connections:
-            self.active_connections[user_id].remove(websocket, user_id)
-            if not self.active_connections[user_id]:
+    async def disconnect(self, websocket: WebSocket, user_id: int):
+        if user_id in self.active_connections and websocket.state:
+            try:
+                # check if the websocket connection is still open
+                if websocket.state:
+                    await websocket.close()
+            except Exception as e:
+                print(f"Error while closing WebSocket for User {user_id}: {e}")
+            finally:
                 del self.active_connections[user_id]
-            print(f"User {user_id} disconnected")
+                print(f"User {user_id} disconnected")
+
 
 
 app = FastAPI()
@@ -150,7 +156,7 @@ async def websocket_endpoint(websocket: WebSocket, sender_id: int, receiver_id: 
     except WebSocketDisconnect:
         # Handle disconnection
         print(f"User {sender_id} disconnected.")
-        connection_manager.disconnect(websocket=websocket, sender_id=sender_id)
+        await connection_manager.disconnect(websocket=websocket, user_id=sender_id)
     except Exception as e:
         print(f"Error in WebSocket endpoint: {e}")
 

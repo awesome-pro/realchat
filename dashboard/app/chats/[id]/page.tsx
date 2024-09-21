@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
@@ -98,7 +99,7 @@ function ChatIDpage() {
       };
 
       ws.send(JSON.stringify(message)); // Send message as JSON
-      toast.success('Message sent');
+      //toast.success('Message sent');
       setInput('');
     } else {
       toast.error('Please type a message');
@@ -115,19 +116,18 @@ function ChatIDpage() {
       receiverID ? (
           messages.map((msg, index) => (
             <div key={index} className={cn(
-              'p-2 m-2 max-w-[90%] rounded-lg flex w-full',
-              msg.username === 'You' ? 'bg-blue-400/30  items-start text-start pr-20' : 'bg-gray-100/90 text-black items-end text-right pl-[30%]'
+              'w-full flex flex-col justify-between gap-2 px-3',
+              msg.username === 'You' ? 'items-end' : 'items-start'
             )}>
-              <div>
-                {
-                  msg.data == "You have Joined" ? (
-                    <p className='text-xs text-gray-400'>{msg.data}</p>
-                  ) : (
-                    <p className='text-sm'>{msg.data}</p>
-                  )
-                }
-                
-              </div>
+              <Card className={cn(
+                'max-w-[80%] min-w-[30%] py-2 px-3',
+                msg.username === 'You' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-black'
+              )}>
+                {msg.username}: {msg.data}
+              </Card>
+              <Card className='w-[20%] bg-red-500 h-full'>
+
+              </Card>
             </div >
           ))
       ) : (
@@ -137,20 +137,20 @@ function ChatIDpage() {
       )
     }
       </div>
-      <div className='flex gap-0  bg-blue-600/20 px-10 py-5 w-full'>
+      <div className='flex gap-0  bg-blue-600/20 px-10 py-5 w-full bottom-0'>
         <Input
           placeholder='Type a message'
-          className=''
+          className='rounded-r-none'
           value={input}
           onChange={(e) => setInput(e.target.value)}
         />
-        <Button size={'lg'} className='' onClick={sendMessage}
+        <Button size={'lg'} className='rounded-l-none' onClick={sendMessage}
          onKeyPress={(e) => {
           if (e.key === 'Enter') {
             sendMessage();
           }
          }}>
-          Send
+          Send <Send className='rotate-45'/>
         </Button>
       </div>
     </section>

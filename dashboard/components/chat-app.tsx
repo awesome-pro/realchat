@@ -92,7 +92,7 @@ const Chat: React.FC<ChatProps> = ({ senderId, receiver }) => {
       };
 
       ws.send(JSON.stringify(message)); // Send message as JSON
-      toast.success('Message sent');
+      //toast.success('Message sent');
       setInput('');
     } else {
       toast.error('Please type a message');

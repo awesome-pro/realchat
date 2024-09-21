@@ -5,6 +5,8 @@ import { useParams, useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Send } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Card } from '@/components/ui/card'
 
 function GroupIDPage() {
   const params = useParams()
@@ -47,7 +49,7 @@ function GroupIDPage() {
     }
 
     return () => {
-        ws.close()
+        // Cleanup
     }
   }, [groupId, userId])
 
@@ -66,15 +68,23 @@ function GroupIDPage() {
 
   return (
     <section className='relative w-full h-full flex flex-col items-center justify-start'>
-      <div className='flex flex-col items-center'>
+      <div className='flex flex-col items-center w-full'>
         {messages.map((msg, index) => (
-          <div key={index}>{msg.sender_name}: {msg.message}</div>
+          <div key={index} className={cn(
+            'flex  gap-2 p-2 justify-center',
+            msg.sender_id === userId ? ' items-end text-white ' : 'items-start text-black'
+          )}>
+              <Card className='p-2 msx-w-[80%]'>
+                <p className='text-sm'>{msg.sender_name}</p>
+                <p>{msg.message}</p>
+              </Card>
+          </div>
         ))}
       </div>
       <div className='flex absolute bottom-2 gap-0 w-[90%]'>
         <Input
           placeholder='Type a message'
-          className='w-full'
+          className='w-full rounded-r-none'
           value={message}
           onChange={(e) => setMessage(e.target.value)}
         />
