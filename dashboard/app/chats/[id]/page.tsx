@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import axios from 'axios';
 import { Send } from 'lucide-react';
@@ -26,31 +27,30 @@ function ChatIDpage() {
   const [previousChat, setPreviousChat] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [previousChatson, setPreviousChatson] = useState<boolean>(false);
 
 
-  // const fetchPreviousChats = useCallback(async (sender_id: string, reciever_id: string) => {
-  //   setLoading(true);
-  //   try {
-  //     const res = await axios.get(`http://localhost:8000/chats?sender=${us}&receiver=${reciever_id}`);
-  //     const data = res.data;
-  //     console.log(data);
-  //     setPreviousChat(data);
-  //   } catch (error: any) {
-  //     console.error('Error fetching previous chats: ', error);
-  //     setError('An error occurred while fetching previous chats: ' + error.toString());
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // }, []);
+  const fetchPreviousChats = useCallback(async (sender_id: string, reciever_id: string) => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`http://localhost:8000/chats?sender=${userID}&receiver=${reciever_id}`);
+      const data = res.data;
+      console.log(data);
+      // add the previos messages tp the messages array
+      messages.push(data);
+    } catch (error: any) {
+      console.error('Error fetching previous chats: ', error);
+      setError('An error occurred while fetching previous chats: ' + error.toString());
+    } finally {
+      setLoading(false);
+    }
+  }, [messages, userID]);
 
-  // Request permission for browser notifications
-  // useEffect(() => {
-  //   if (Notification.permission !== 'granted') {
-  //     Notification.requestPermission();
-  //   }
-
-  //   fetchPreviousChats(userID as string, receiverID as string);
-  // }, [fetchPreviousChats, receiverID, userID]);
+  useEffect(() => {
+    if (previousChatson) {
+      fetchPreviousChats(userID, receiverID);
+    }
+  }, [previousChatson, fetchPreviousChats, userID, receiverID]);
 
   useEffect(() => {
     // Clear previous messages when senderId or receiver.id changes
@@ -108,8 +108,12 @@ function ChatIDpage() {
 
   return (
     <section className='w-full h-full flex flex-col justify-between'>
-       <header className='pl-10 py-8 bg-blue-600 text-white'>
+       <header className='pl-10 py-8 bg-blue-600 text-white flex items-center justify-between'>
           <h1 className='text-2xl font-bold'>Chat with <strong>{recieverName}</strong></h1>
+          <div className='flex items-end gap-2'>
+            <p>Previous Chats</p>
+            <Switch id='dark-mode' checked={previousChatson} onCheckedChange={(value) => {setPreviousChatson(value)}}/>        
+          </div>
        </header>
       <div>
       {
@@ -120,10 +124,21 @@ function ChatIDpage() {
               msg.username === 'You' ? 'items-end' : 'items-start'
             )}>
               <Card className={cn(
-                'max-w-[80%] min-w-[30%] py-2 px-3',
+                'max-w-[80%] min-w-[30%] py-2 px-3 flex items-center justify-between',
                 msg.username === 'You' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-black'
               )}>
-                {msg.username}: {msg.data}
+                <span className='w-[95%] flex gap-2'>
+                  {msg.username}: {msg.data}
+                </span>
+                { msg.isSeen && msg.data !== "You have Joined"  &&
+                  msg.isSeen === "true" ? (
+                    <span className='text-xs text-white'>Seen</span>
+                  ) : (
+                    <span className='text-xs text-white'>
+                      <span>Sent</span>
+                    </span>
+                  )
+                }
               </Card>
               <Card className='w-[20%] bg-red-500 h-full'>
 

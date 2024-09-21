@@ -1,3 +1,4 @@
+import Navbar from '@/components/navbar'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -6,6 +7,7 @@ import React from 'react'
 function Home() {
   return (
     <section className='w-screen h-screen flex items-center mt-10 lg:mt-36 flex-col'>
+        <Navbar/>
         <h1 className='text-6xl font-semibold bg-gradient-to-tr from-purple-800/90 via-blue-700 to-blue-700/50 bg-clip-text text-transparent'>
             Welcome to the Realtime Chat App
         </h1>

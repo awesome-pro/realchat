@@ -19,8 +19,14 @@ function AuthPage() {
       try {
         const res = await axios.post("http://localhost:8000/users/", {username})
         const data = res.data
-        toast.success("User created")
-        router.push(`http://localhost:3000/${data.id}`)
+        if(!data.id) {
+          setError("Username Already Exists")
+          toast.error("Username Already Exists")
+        }else{
+          toast.success("User created")
+          router.push(`/features?id=${data.id}&username=${data.username}`)
+        }
+        
       } catch (error: any) {
         console.log(error.message)
         setError(error.message)
@@ -50,7 +56,7 @@ function AuthPage() {
             </form>
             </div>
         </div>
-          {error && <p className='text-red-700 font-semibold text-2xl animate-pulse'>{error}</p>}
+          {error && <p className='text-red-700 font-semibold text-lg animate-pulse text-center w-full mt-10'>{error}</p>}
     </section>
   )
 }
