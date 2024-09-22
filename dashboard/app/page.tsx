@@ -10,19 +10,19 @@ function Home() {
   return (
     <section className='w-screen h-screen flex items-center mt-10 lg:mt-36 flex-col'>
         <Navbar/>
-        <h1 className='text-6xl font-semibold bg-gradient-to-tr from-purple-800/90 via-blue-700 to-blue-700/50 bg-clip-text text-transparent'>
-            Welcome to the Realtime Chat App
+        <h1 className='text-6xl font-bold bg-gradient-to-tr from-blue-600/90 via-sky-500 to-blue-600 bg-clip-text text-transparent'>
+             Chat with your friends in Real time
         </h1>
-        <div className='mx-4 flex w-screen items-center justify-center gap-20 mt-10'>
+        <div className='mx-4 flex w-screen items-center justify-center gap-20 lg:gap-40 mt-10'>
            <div className='flex gap-10 '>
             <Link href='/login'>
-                    <Button>
+                    <Button className='text-white w-36'>
                         New User
                     </Button>
                 </Link>
-                <Link href='/old'>
-                    <Button variant={'ghost'} className='hover:bg-blue-600/20'>
-                        Registerd Users
+                <Link href='/features'>
+                    <Button variant={'ghost'} className='hover:bg-blue-600/20 w-36'>
+                        Registered Users
                     </Button>
                 </Link>
            </div>

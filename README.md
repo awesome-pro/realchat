@@ -8,21 +8,49 @@
 3. [Backend Deployment](https://realchat-nakw.onrender.com/)
 2. [Postman Collections](https://ashwini-1346.postman.co/workspace/Ashwini-Workspace~362b564f-b14f-4331-a4f8-1073429e89b7/collection/31971900-92eb52a9-6cbe-439b-938e-8264f01e67d4)
 
+## Table of Contents
+- [Overview](#overview)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Key Project Requirements](#key-project-requirements)
+- [File Structure](#file-structure)
+- [Setup Instructions](#setup-instructions)
+- [Testing](#testing)
+- [Future Improvements](#future-improvements)
+- [Conclusion](#conclusion)
+
 ## Overview
 
 This project is a real-time messaging application, built with scalability and functionality in mind. The app allows users to send real-time messages via their browser and ensures the delivery and storage of messages reliably. While the UI is functional, the focus of this project is on delivering a stable and performant system. The app is built using **FastAPI** for the backend and **Next.js** (TypeScript) for the front end, with **PostgreSQL** for database storage and **WebSockets** for real-time messaging.
+
+## Images
+<img src="/dashboard//public/screenshots/sc1.png" width="300px" />
+<img src="/dashboard//public/screenshots/sc2.png" width="300px" />
+<img src="/dashboard//public/screenshots/sc3.png" width="300px" />
+<img src="/dashboard//public/screenshots/sc4.png" width="300px" />
+<img src="/dashboard//public/screenshots/sc5.png" width="300px" />
+<img src="/dashboard//public/screenshots/sc6.png" width="300px" />
+<img src="/dashboard//public/screenshots/sc7.png" width="300px" />
 
 ## Features
 
 ### User Login
 - Users can log in by choosing a username.
 - Once logged in, the system lists all active users.
+- [Link](http://localhost:3000/login)
 
 
-### Real-Time Messaging
+### Real-Time Private Messaging
 - Users can select another active user and start a real-time chat.
 - Messages are delivered instantly between users using **WebSockets**.
 - Incoming messages trigger **browser notifications** for better interaction.
+- [Link](http://localhost:3000/features)
+
+## Real-time Group Chat
+- Users can join a group chat room and send messages to all participants.
+- Messages are delivered instantly to all users in the chat room.
+- Users can see who is currently active in the chat room.
+- [Link](http://localhost:3000/features)
 
 ### Database Integration
 - Every message sent is stored in **PostgreSQL** using **SQLAlchemy ORM**.
