@@ -24,15 +24,14 @@
 This project is a real-time messaging application, built with scalability and functionality in mind. The app allows users to send real-time messages via their browser and ensures the delivery and storage of messages reliably. While the UI is functional, the focus of this project is on delivering a stable and performant system. The app is built using **FastAPI** for the backend and **Next.js** (TypeScript) for the front end, with **PostgreSQL** for database storage and **WebSockets** for real-time messaging.
 
 ## Images
-<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-  <img src="/dashboard/public/screenshots/sc1.png" width="100%" />
-  <img src="/dashboard/public/screenshots/sc2.png" width="100%" />
-  <img src="/dashboard/public/screenshots/sc3.png" width="100%" />
-  <img src="/dashboard/public/screenshots/sc4.png" width="100%" />
-  <img src="/dashboard/public/screenshots/sc5.png" width="100%" />
-  <img src="/dashboard/public/screenshots/sc6.png" width="100%" />
-  <img src="/dashboard/public/screenshots/sc7.png" width="100%" />
-</div>
+  <img src="/dashboard/public/screenshots/sc1.png" width="300px" />
+  <img src="/dashboard/public/screenshots/sc2.png" width="300px"/>
+  <img src="/dashboard/public/screenshots/sc3.png" width="300px" />
+  <img src="/dashboard/public/screenshots/sc4.png" width="300px" />
+  <img src="/dashboard/public/screenshots/sc5.png" width="300px" />
+  <img src="/dashboard/public/screenshots/sc6.png" width="300px" />
+  <img src="/dashboard/public/screenshots/sc7.png" width="300px" />
+
 
 ## Features
 
@@ -95,20 +94,21 @@ This project is a real-time messaging application, built with scalability and fu
 ```bash
 .
 ├── backend
-│   ├── app
+│   ├── alembic
+│   ├── alembic.ini
+│   ├── database.py
 │   ├── main.py
 │   ├── models.py
-│   ├── routers
-│   └── tests
-├── frontend
+│   ├── requirements.txt
+│   └── .env
+├── dashboard
+│   ├── app
 │   ├── components
-│   ├── pages
 │   ├── public
-│   ├── styles
+│   ├── lib
 │   └── utils
 ├── .gitignore
 ├── README.md
-└── requirements.txt
 ```
 
 ## Setup Instructions
@@ -123,12 +123,13 @@ This project is a real-time messaging application, built with scalability and fu
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/realtime-chat-app.git
-   cd backend
+   git clone https://github.com/awesome-pro/realchat.git
+   cd realchat
    ```
 
 2. **Create a virtual environment**:
    ```bash
+   cd backend
    python -m venv env
    source env/bin/activate  # Linux/Mac
    env\Scripts\activate  # Windows
@@ -140,8 +141,9 @@ This project is a real-time messaging application, built with scalability and fu
    ```
 
 4. **Configure PostgreSQL**:
-   - Ensure PostgreSQL is running.
-   - Update your connection settings in `backend/app/config.py`.
+   - Ensure PostgreSQL is running on port `5432`.
+   - Copy .env.example to .env and update the database URL.
+   - Update the database URL in `alembic.ini` as well.
 
 5. **Run the backend server**:
    ```bash
@@ -152,7 +154,7 @@ This project is a real-time messaging application, built with scalability and fu
 
 1. **Navigate to the frontend directory**:
    ```bash
-   cd frontend
+   cd dashboard
    ```
 
 2. **Install dependencies**:
@@ -163,6 +165,10 @@ This project is a real-time messaging application, built with scalability and fu
 3. **Run the frontend app**:
    ```bash
    npm run dev
+   ```
+4. **Open the browser**:
+   ```bash
+   http://localhost:3000
    ```
 
 ### Database Setup
@@ -201,3 +207,6 @@ You can test the app by opening the chat in multiple browser windows or differen
 This real-time chat app is designed with a focus on performance, scalability, and reliability. It's a demonstration of how modern web technologies can be combined to deliver a functional and robust messaging system, suitable for large-scale applications.
 
 Feel free to reach out if you have any questions or need further clarification!
+
+Thank you for reading!
+
