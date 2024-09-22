@@ -4,15 +4,16 @@ import React, { useEffect } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Send } from 'lucide-react'
+import { Info, Send } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Card } from '@/components/ui/card'
+
 
 function GroupIDPage() {
   const params = useParams()
   const searchParams = useSearchParams()
   const groupId = params.id
-  const userId = searchParams.get('userId')
+  const userId = searchParams.get('userid')
   const username = searchParams.get('username')
 
 
@@ -41,7 +42,8 @@ function GroupIDPage() {
         setMessages((prevMessages) => [...prevMessages, data]);
         setInfo('Message received');
         if (Notification.permission === 'granted') {
-          new Notification(data.username, { body: data.data });
+          if(data.username !== username || data.username !== "You")
+            new Notification(data.username, { body: data.data });
         }
       };
 
@@ -61,7 +63,7 @@ function GroupIDPage() {
         ws.close();
       };
     }
-  }, [groupId, userId]);
+  }, [groupId, userId, username]);
 
   const sendMessage = () => {
     if (socket && message.trim() !== '') {
@@ -71,22 +73,26 @@ function GroupIDPage() {
         sender_name: username,
       };
       socket.send(JSON.stringify(messageData));
+      // add the new messsage to the list of messages
       setMessage('');
     }
   };
 
   return (
-    <section className='relative w-full h-full flex flex-col items-center justify-start'>
-      <div className='flex flex-col items-center w-full'>
-        <h1 className='text-2xl font-bold'>{info}</h1>
+    <section className='relative w-full h-full flex flex-col items-center justify-start bg-blue-600/10'>
+      <div className='flex flex-col items-center w-full '>
+        <header className='w-full bg-white text-blue-600 flex items-center justify-between p-4' >
+          <h1 className='text-xl text-primary'>Group Chat: <strong>{groupId}</strong></h1>
+          <span className='text-xs text-black flex gap-2 items-center'><Info className='w-5'/>  {info}</span>
+        </header>
         {messages.map((msg, index) => (
             <div key={index} className={cn(
-              'w-full flex flex-col justify-between gap-2 px-3',
+              'w-full flex flex-col justify-between gap-2 px-3 mt-10',
               msg.username === username ? 'items-end' : 'items-start'
             )}>
               <Card className={cn(
                 'max-w-[80%] min-w-[30%] py-2 px-3 flex items-center justify-between',
-               msg.username === username ? 'bg-blue-600 text-white' : 'bg-gray-200 text-black'
+               msg.username === username ? 'bg-blue-600 text-white' : 'bg-white text-black'
               )}>
                 <span className='w-[95%] flex gap-2'>
                   {msg.username}: {msg.data}

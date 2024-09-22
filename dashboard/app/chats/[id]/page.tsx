@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import axios from 'axios';
-import { Send } from 'lucide-react';
+import { Info, Send } from 'lucide-react';
 import { useParams, useSearchParams } from 'next/navigation';
 import React, { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner';
@@ -110,9 +110,9 @@ function ChatIDpage() {
     <section className='w-full h-full flex flex-col justify-between'>
        <header className='pl-10 py-8 bg-blue-600 text-white flex items-center justify-between'>
           <h1 className='text-2xl font-bold'>Chat with <strong>{recieverName}</strong></h1>
-          <div className='flex items-end gap-2'>
-            <p>Previous Chats</p>
-            <Switch id='dark-mode' checked={previousChatson} onCheckedChange={(value) => {setPreviousChatson(value)}}/>        
+          <div className='flex items-center justify-center gap-2 mr-2 text-sm'>
+            <Info className='w-5'/>
+            <p>{info}</p>
           </div>
        </header>
       <div>

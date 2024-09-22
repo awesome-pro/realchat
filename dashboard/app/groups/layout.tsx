@@ -5,10 +5,19 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import axios from 'axios';
 import { div } from 'framer-motion/client';
-import { PlusCircle, PlusIcon } from 'lucide-react';
+import { ArrowLeftIcon, PlusCircle, PlusIcon } from 'lucide-react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import React, { useCallback } from 'react'
 import { toast } from 'sonner';
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+  } from "@/components/ui/sheet"
+  
 
 
 function GroupLayout(
@@ -18,13 +27,30 @@ function GroupLayout(
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState('');
     const searchParams = useSearchParams()
-    const userId = searchParams.get('userId') as string
+    const userId = searchParams.get('userid') as string
     const username = searchParams.get('username') as string
     const groupID = Number(useParams().id as unknown)
 
     const router = useRouter();
 
     const [currentGroupID, setCurrentGroupID] = React.useState<number | null>(groupID)
+    const [sheetOpen, setSheetOpen] = React.useState(false)
+
+    const createNewGroup =async (groupName: string) => {
+        setLoading(true)
+        setSheetOpen(true)
+        try {
+            const response = await axios.post('http://localhost:8000/groups', {
+                name: groupName
+            })
+            setGroups((prevGroups) => [...prevGroups, response.data])
+        } catch (error) {
+            setError(error as string)
+        }finally{
+            setLoading(false)
+            setSheetOpen(false)
+        }
+    }
 
     const fetchAllGroups = useCallback(async () => {
         try {
@@ -44,7 +70,15 @@ function GroupLayout(
   return (
     <section className='flex flex-col lg:flex-row items-center justify-between p-0 h-screen w-screen'>
         <section className='w-full lg:w-[25%] bg-primary/20 h-full relative'>
-            <span className='w-full text-3xl my-10'>
+            <span className='w-full text-2xl my-10 flex items-center justify-start  gap-4 pl-5'>
+                <Button className='text-white bg-primary/50' size={'icon'} variant={'ghost'}
+                    onClick={() => {
+                        router.push(`/features?id=${userId}&username=${username}`)
+                    }}
+                >
+                    <ArrowLeftIcon size={20} className='mx-2'/>
+                </Button>
+
                     <h1>Welcome to <strong>Groups</strong></h1>
             </span>
             <nav className='flex flex-col items-center justify-start mt-10'>
@@ -74,7 +108,7 @@ function GroupLayout(
                             onClick={() => {
                                 setCurrentGroupID(group.id)
                                 if(userId)
-                                    router.push(`/groups/${group.id}?userId=${userId}&username=${username}`)
+                                    router.push(`/groups/${group.id}?userid=${userId}&username=${username}`)
                                 else{
                                     toast.error('Sign In to view group chats')
                                     router.push('/login')
@@ -93,9 +127,39 @@ function GroupLayout(
                     ))
                 }
             </nav>
-                <Button className='bg-primary text-white mx-4  absolute bottom-5 w-[90%] '>
-                       Create New Group <PlusIcon size={20} className='ml-2'/>
-                </Button>
+            <Sheet open={sheetOpen} onOpenChange={
+                (open) => setSheetOpen(open)
+            }>
+            <SheetTrigger className=' absolute bottom-5 bg-primary w-[90%] rounded-sm text-white flex items-center justify-center px-1 py-2'
+                onClick={() => setSheetOpen(true)}
+            >
+                    Create New Group <PlusIcon size={20} />
+            </SheetTrigger>
+            <SheetContent className=''>
+                <SheetHeader>
+                <SheetTitle>Create a New Group</SheetTitle>
+                <SheetDescription>
+                    <form className='flex flex-col items-center justify-center gap-2'>
+                        <input type='text' placeholder='Group Name' className='w-[80%] p-2 rounded-md' disabled={loading}/>
+                        <div className='flex items-center gap-2 w-full'>
+                            <Button className='w-full' variant='ghost' type='button'
+                                onClick={() => setSheetOpen(false)}
+                                disabled={loading}
+                            >
+                                Cancel
+                            </Button>
+                            <Button className='w-full' variant='default' 
+                             onClick={() => createNewGroup('New Group')}
+                            >
+                                Create Group
+                            </Button>
+                        </div>
+                    </form>
+                </SheetDescription>
+                </SheetHeader>
+            </SheetContent>
+            </Sheet>
+
         </section>
         <section className='w-full h-full md:w-[75%] flex flex-col items-center justify-center p-1 '>
             

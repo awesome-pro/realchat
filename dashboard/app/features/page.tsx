@@ -24,7 +24,7 @@ function Features() {
         </div>
         <div className='w-full items-center flex justify-center h-full object-cover'>
             <div className='w-full h-full bg-blue-600 items-center flex flex-col justify-center'>
-            <Link href={`/groups/${userId}?username=${username}`}>
+            <Link href={`/groups/${userId}?userid=${userId}&username=${username}`}>
                 <Button className='w-48  text-lg font-semibold h-16' variant={'outline'}>
                     Groups
                 </Button>
