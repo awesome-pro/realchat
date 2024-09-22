@@ -24,13 +24,15 @@
 This project is a real-time messaging application, built with scalability and functionality in mind. The app allows users to send real-time messages via their browser and ensures the delivery and storage of messages reliably. While the UI is functional, the focus of this project is on delivering a stable and performant system. The app is built using **FastAPI** for the backend and **Next.js** (TypeScript) for the front end, with **PostgreSQL** for database storage and **WebSockets** for real-time messaging.
 
 ## Images
-<img src="/dashboard//public/screenshots/sc1.png" width="300px" />
-<img src="/dashboard//public/screenshots/sc2.png" width="300px" />
-<img src="/dashboard//public/screenshots/sc3.png" width="300px" />
-<img src="/dashboard//public/screenshots/sc4.png" width="300px" />
-<img src="/dashboard//public/screenshots/sc5.png" width="300px" />
-<img src="/dashboard//public/screenshots/sc6.png" width="300px" />
-<img src="/dashboard//public/screenshots/sc7.png" width="300px" />
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+  <img src="/dashboard/public/screenshots/sc1.png" width="100%" />
+  <img src="/dashboard/public/screenshots/sc2.png" width="100%" />
+  <img src="/dashboard/public/screenshots/sc3.png" width="100%" />
+  <img src="/dashboard/public/screenshots/sc4.png" width="100%" />
+  <img src="/dashboard/public/screenshots/sc5.png" width="100%" />
+  <img src="/dashboard/public/screenshots/sc6.png" width="100%" />
+  <img src="/dashboard/public/screenshots/sc7.png" width="100%" />
+</div>
 
 ## Features
 
