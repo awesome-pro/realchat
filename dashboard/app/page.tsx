@@ -1,4 +1,6 @@
+import Footer from '@/components/footer'
 import Navbar from '@/components/navbar'
+import Trust from '@/components/trust'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -29,20 +31,9 @@ function Home() {
             </div>
         </div>
 
-    <div className='w-screen flex flex-col items-start justify-between lg:pl-10 py-10 bg-primary/10'>
-        <h3 className='text-2xl font-semibold'>
-            All Services
-        </h3>
-        <div className='flex flex-col lg:flex-row text-primary lg:gap-10 mt-5'>
-            <Link href='/chats' className='hover:underline'>
-                All Chats
-            </Link>
-            <Link href='/chats' className='hover:underline'>
-                All Users
-            </Link>
-        </div>
-    </div>
-        
+        <Trust  />
+
+        <Footer />
     </section>
   )
 }

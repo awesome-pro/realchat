@@ -2,7 +2,11 @@
 const nextConfig = {
     images: {
         domains: [
-            'i.pinimg.com'
+            'i.pinimg.com',
+            'media.giphy.com',
+            'cdn.dribbble.com',
+            'cdn.pixabay.com',
+            'avatar.vercel.sh'
         ]
     }
 };

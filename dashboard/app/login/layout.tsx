@@ -34,7 +34,7 @@ function LoginLayout(
     fetchUsers()
   }, [fetchUsers])
   return (
-    <section className='w-screen max-h-screen flex flex-col lg:flex-row'>
+    <section className='w-screen h-screen flex flex-col lg:flex-row'>
         <section className='w-[50%] h-full'>
             {children}
         </section>
