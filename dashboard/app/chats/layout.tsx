@@ -4,17 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import axios from 'axios';
-import { div } from 'framer-motion/client';
-import { ArrowLeftIcon, PlusCircle, PlusIcon } from 'lucide-react';
+import { ArrowLeftIcon, PlusIcon } from 'lucide-react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import React, { useCallback } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { toast } from 'sonner';
 
 type user = {
     username: string,
     id: number
 }
-
 
 function ChatLayout(
     { children }: { children: React.ReactNode }
@@ -27,6 +25,9 @@ function ChatLayout(
     const userId = useParams().id as string
     const username = searchParams.get('username') as string
     const receiverID = Number(searchParams.get('receiver') as unknown)
+
+    const [websocket, setWebsocket] = React.useState<WebSocket | null>(null)
+    const [activeUsers, setActiveUsers] = React.useState<any[]>([])
 
     const router = useRouter();
 
@@ -45,6 +46,32 @@ function ChatLayout(
         fetchAllusers()
     }, [fetchAllusers])
 
+    useEffect(() => {
+        // Implement the websocket to get all active users in real-time
+        const ws = new WebSocket('ws://localhost:8000/active_users')
+    
+        ws.onopen = () => {
+            console.log('Connected to websocket for active users')
+        }
+    
+        ws.onmessage = (event) => {
+            const activeUsers = JSON.parse(event.data)
+            console.log("Active Users: ", activeUsers)
+            setActiveUsers(activeUsers)  // Update state
+        }
+    
+        ws.onclose = () => {
+            console.log('Disconnected from websocket for active users')
+        }
+    
+        setWebsocket(ws)
+    
+        return () => {
+            ws.close()
+        }
+    }, [])
+    
+
   return (
     <section className='flex flex-col lg:flex-row items-center justify-between p-0 h-screen w-screen'>
         <section className='w-full lg:w-[25%] bg-primary/20 lg:h-full relative'>
@@ -56,7 +83,7 @@ function ChatLayout(
                     >
                           <ArrowLeftIcon size={20} className='mx-2'/>
                     </Button>
-                    <h1>Welcome to <strong>Private Chat</strong></h1>
+                    <h1 className='text-md'>Welcome to<strong>Private Chat</strong></h1>
             </div>
             <nav className='flex lg:flex-col items-center justify-start mt-5 lg:mt-10 overflow-x-scroll lg:overflow-y-scroll'>
                 {
@@ -85,7 +112,7 @@ function ChatLayout(
                             onClick={() => {
                                 setSelecteduser(user)
                                 if(userId)
-                                    router.push(`/chats/${userId}?receiver=${user.id}&receivername=${user.username}`)
+                                    router.push(`/chats/${userId}?username=${username}&receiver=${user.id}&receivername=${user.username}`)
                                 else{
                                     toast.error('Sign In to view user chats')
                                     router.push('/login')
@@ -93,6 +120,12 @@ function ChatLayout(
                             }}
                         >
                             {user.username}
+                            {
+                                // active users is a list of userIDs, so check if the current user id is present in the list
+                                activeUsers.includes(user.id) && (
+                                    <span className='bg-green-500 w-2 h-2 rounded-full ml-2'/>
+                                )
+                            }
                         </Button>
                     ))
                 }

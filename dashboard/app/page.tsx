@@ -9,7 +9,7 @@ import React from 'react'
 
 function Home() {
   return (
-    <section className='w-screen h-screen flex items-center flex-col'>
+    <section className='max-w-screen h-screen flex items-center flex-col'>
         <Hero />
         {/* <Navbar/>
         <h1 className='text-6xl font-bold bg-gradient-to-tr from-blue-600/90 via-sky-500 to-blue-600 bg-clip-text text-transparent'>
@@ -36,6 +36,7 @@ function Home() {
         <Trust  />
 
         <Footer /> */}
+        <Footer  />
     </section>
   )
 }

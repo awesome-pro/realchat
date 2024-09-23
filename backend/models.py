@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Table
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Table, Sequence
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
@@ -39,9 +39,14 @@ class Chat(Base):
     receiver = relationship("User", foreign_keys=[receiver_id], back_populates="received_chats")
     group = relationship("Group", back_populates="chats")  # Bidirectional relationship with Group
 
+# Define a sequence starting at 100000 for Group IDs
+group_id_seq = Sequence('group_id_seq', start=100000)
+
 class Group(Base):
     __tablename__ = 'groups'
-    id = Column(Integer, primary_key=True, index=True)
+    
+    # Use the custom sequence for the ID
+    id = Column(Integer, Sequence('group_id_seq', start=100000), primary_key=True, index=True)
     name = Column(String(255), unique=True, index=True)
 
     # Relationships

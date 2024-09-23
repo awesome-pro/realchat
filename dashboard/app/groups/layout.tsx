@@ -17,6 +17,7 @@ import {
     SheetTitle,
     SheetTrigger,
   } from "@/components/ui/sheet"
+import { Input } from '@/components/ui/input';
   
 
 
@@ -36,16 +37,17 @@ function GroupLayout(
     const [currentGroupID, setCurrentGroupID] = React.useState<number | null>(groupID)
     const [sheetOpen, setSheetOpen] = React.useState(false)
 
-    const createNewGroup =async (groupName: string) => {
+    const createNewGroup = async (groupName: string) => {
         setLoading(true)
         setSheetOpen(true)
         try {
             const response = await axios.post('http://localhost:8000/groups', {
                 name: groupName
             })
-            setGroups((prevGroups) => [...prevGroups, response.data])
+            setGroups([...groups, response.data])
         } catch (error) {
             setError(error as string)
+            toast.error('An error occurred while creating a new group')
         }finally{
             setLoading(false)
             setSheetOpen(false)
@@ -66,6 +68,7 @@ function GroupLayout(
     React.useEffect(() => {
         fetchAllGroups()
     }, [fetchAllGroups])
+
 
   return (
     <section className='flex flex-col lg:flex-row items-center justify-between p-0 h-screen w-screen'>
@@ -137,18 +140,18 @@ function GroupLayout(
             </SheetTrigger>
             <SheetContent className=''>
                 <SheetHeader>
-                <SheetTitle>Create a New Group</SheetTitle>
+                <SheetTitle className='text-3xl font-semibold  text-primary'>Create a New Group</SheetTitle>
                 <SheetDescription>
                     <form className='flex flex-col items-center justify-center gap-2'>
-                        <input type='text' placeholder='Group Name' className='w-[80%] p-2 rounded-md' disabled={loading}/>
-                        <div className='flex items-center gap-2 w-full'>
+                        <Input type='text' placeholder='Enter Group Name' className='w-[90%] p-2 rounded-sm mt-10' disabled={loading}/>
+                        <div className='flex items-center gap-2 w-full mt-20'>
                             <Button className='w-full' variant='ghost' type='button'
                                 onClick={() => setSheetOpen(false)}
                                 disabled={loading}
                             >
                                 Cancel
                             </Button>
-                            <Button className='w-full' variant='default' 
+                            <Button className='w-full text-white' variant='default' 
                              onClick={() => createNewGroup('New Group')}
                             >
                                 Create Group

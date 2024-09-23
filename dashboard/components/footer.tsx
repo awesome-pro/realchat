@@ -27,13 +27,13 @@ const footerLinks = [
     href: "/tnc"
   },
   {
-    label: "Support Us",
-    href: "/support-us"
+    label: "Admin",
+    href: "/admin"
   }
 ]
 function Footer() {
   return (
-    <footer className="text-gray-800 bg-primary/5 py-4 w-full mt-20 bg-red-500">
+    <footer className="text-gray-800 bg-primary/5 py-4 w-full mt-20 ">
       <div className='flex flex-col lg:flex-row items-center justify-center lg:gap-10 bg-white/20 p'>
           {footerLinks.map((link, index) => (
             <Link key={index} href={
