@@ -39,8 +39,8 @@ function LoginLayout(
             {children}
         </section>
         <section className='w-[50%] h-full bg-primary/90 text-white'>
-            <p className='text-center'>OR</p>
-            <h1 className='text-4xl font-bold text-center my-10'>Continue as Registered User</h1>
+            <p className='text-center mt-10'>OR</p>
+            <h1 className='text-4xl font-bold text-center mb-10'>Continue as Registered User</h1>
             
             <nav className='w-[90%] h-full flex flex-col items-center mt-7 overflow-y-scroll'>
                 {
@@ -59,6 +59,7 @@ function LoginLayout(
                                 toast.success(`Signed in as ${user.username}`)
                                 router.push(`http://localhost:3000/features?id=${user.id}&username=${user.username}`)
                             }}>
+                            
                                 {user.username}
                             </Button>
                         ))

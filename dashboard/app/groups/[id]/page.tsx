@@ -8,15 +8,12 @@ import { Info, Send } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Card } from '@/components/ui/card'
 
-
 function GroupIDPage() {
   const params = useParams()
   const searchParams = useSearchParams()
   const groupId = params.id
   const userId = searchParams.get('userid')
   const username = searchParams.get('username')
-
-
 
   const [messages, setMessages] = React.useState<any[]>([])
   const [message, setMessage] = React.useState('')
@@ -42,8 +39,9 @@ function GroupIDPage() {
         setMessages((prevMessages) => [...prevMessages, data]);
         setInfo('Message received');
         if (Notification.permission === 'granted') {
-          if(data.username !== username || data.username !== "You")
+          if (data.username !== username && data.username !== "You") {
             new Notification(data.username, { body: data.data });
+          }
         }
       };
 
@@ -66,15 +64,20 @@ function GroupIDPage() {
   }, [groupId, userId, username]);
 
   const sendMessage = () => {
-    if (socket && message.trim() !== '') {
+    if (socket && socket.readyState === WebSocket.OPEN && message.trim() !== '') {
       const messageData = {
         message,
         sender_id: userId,
         sender_name: username,
       };
-      socket.send(JSON.stringify(messageData));
-      // add the new messsage to the list of messages
-      setMessage('');
+      try {
+        socket.send(JSON.stringify(messageData));
+        setMessage('');
+      } catch (error) {
+        console.error('Error while sending message:', error);
+      }
+    } else {
+      console.error('WebSocket is not open or message is empty');
     }
   };
 
@@ -86,32 +89,35 @@ function GroupIDPage() {
           <span className='text-xs text-black flex gap-2 items-center'><Info className='w-5'/>  {info}</span>
         </header>
         {messages.map((msg, index) => (
-            <div key={index} className={cn(
-              'w-full flex flex-col justify-between gap-2 px-3 mt-10',
-              msg.username === username ? 'items-end' : 'items-start'
+          <div key={index} className={cn(
+            'w-full flex flex-col justify-between gap-2 px-3 mt-10',
+            msg.username === username ? 'items-end' : 'items-start'
+          )}>
+            <Card className={cn(
+              'max-w-[80%] min-w-[30%] py-2 px-3 flex items-center justify-between',
+              msg.username === username ? 'bg-blue-600 text-white' : 'bg-white text-black'
             )}>
-              <Card className={cn(
-                'max-w-[80%] min-w-[30%] py-2 px-3 flex items-center justify-between',
-               msg.username === username ? 'bg-blue-600 text-white' : 'bg-white text-black'
-              )}>
-                <span className='w-[95%] flex gap-2'>
-                  {msg.username}: {msg.data}
+               <span className='w-[95%] flex gap-2'>
+                  <strong>
+                    {msg.username}:
+                  </strong>
+                  <p>{msg.data}</p>
                 </span>
-                { msg.isSeen && msg.data !== "You have Joined"  &&
-                  msg.isSeen === "true" ? (
-                    <span className='text-xs text-white'>Seen</span>
-                  ) : (
-                    <span className='text-xs text-white'>
-                      <span>Sent</span>
-                    </span>
-                  )
-                }
-              </Card>
-              <Card className='w-[20%] bg-red-500 h-full'>
+              {msg.isSeen && msg.data !== "You have Joined" &&
+                msg.isSeen === "true" ? (
+                  <span className='text-xs text-white'>Seen</span>
+                ) : (
+                  <span className='text-xs text-white'>
+                    <span>Sent</span>
+                  </span>
+                )
+              }
+            </Card>
+            <Card className='w-[20%] bg-red-500 h-full'>
 
-              </Card>
-            </div >
-          ))}
+            </Card>
+          </div>
+        ))}
       </div>
       <div className='flex absolute bottom-2 gap-0 w-[90%]'>
         <Input

@@ -8,7 +8,7 @@ function Hero() {
     <section className='max-w-screen max-h-screen h-screen bg-primary flex flex-col items-center'>
         <nav className='w-full lg:px-20 lg:py-6 flex px-4 items-center justify-between text-gray-100/80 '>
             <span className='text-3xl font-semibold text-white w-full text-start'>
-                RealChat
+                <Image src={'/logo.jpg'} alt='logo' width={70} height={100}/>
             </span>
             <div className='flex  items-end justify-between w-full'>
                 <Link href={'/features'} className='hover:text-white'>
@@ -17,10 +17,10 @@ function Hero() {
                 <Link href={'/pricing'} className='hover:text-white'>
                     Pricing
                 </Link>
-                <Link href={'/features'} className='hover:text-white'>
+                <Link href={'/login'} className='hover:text-white'>
                     Sign In
                 </Link>
-                <Link href={'/features'}>
+                <Link href={'/login'}>
                     <Button className='bg-gray-200 hover:bg-white text-primary'>
                        Get Started
                     </Button>
@@ -28,20 +28,20 @@ function Hero() {
             </div>  
         </nav>
         <section className='w-full h-full flex items-center justify-center'>
-            <section className='w-full h-full flex flex-col items-center justify-center p-10 lg:p-32'>
+            <section className='w-full h-full flex flex-col items-start justify-center p-10 lg:p-32'>
                 <h1 className='text-3xl lg:text-7xl bg-gradient-to-tr from-blue-100 via-blue-50 to-white bg-clip-text text-transparent font-bold'>
                     Have your Real Chat 
                 </h1>
                 <p className='text-xl text-white '>
                     Aiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudan.
                 </p>
-                <div className='flex items-center justify-center gap-10 mt-10'>
+                <div className='flex items-start justify-start gap-10 mt-10'>
                     <Link href='/login'>
                         <Button className='bg-white text-primary w-36 hover:bg-white/90'>
                             New User
                         </Button>
                     </Link>
-                    <Link href='/features'>
+                    <Link href='/login'>
                         <Button variant={'outline'} className='bg-transparent border-white border-2 text-white'>
                             Registered Users
                         </Button>

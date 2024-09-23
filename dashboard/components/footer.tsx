@@ -47,8 +47,8 @@ function Footer() {
       </div>
           <Separator className='w-full'/>
       <div className="flex items-baseline justify-center gap-5 py-5">
-        <Image src="/logo.png" alt="logo" width={80} height={20} />
-          <p className='text-xl font-serif m-0 -ml-2'>
+          <h1 className='text-2xl font-semibold font-serif text-primary'>RealChat</h1>
+          <p className='text-xl font-serif m-0 -ml-2 text-primary'>
             Inc.
           </p>
         <p>&copy; 2024 All rights reserved</p>
