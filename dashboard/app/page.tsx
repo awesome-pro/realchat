@@ -1,4 +1,5 @@
 import Footer from '@/components/footer'
+import Hero from '@/components/hero'
 import Navbar from '@/components/navbar'
 import Trust from '@/components/trust'
 import { Button } from '@/components/ui/button'
@@ -8,8 +9,9 @@ import React from 'react'
 
 function Home() {
   return (
-    <section className='w-screen h-screen flex items-center mt-10 lg:mt-36 flex-col'>
-        <Navbar/>
+    <section className='w-screen h-screen flex items-center flex-col'>
+        <Hero />
+        {/* <Navbar/>
         <h1 className='text-6xl font-bold bg-gradient-to-tr from-blue-600/90 via-sky-500 to-blue-600 bg-clip-text text-transparent'>
              Chat with your friends in Real time
         </h1>
@@ -33,7 +35,7 @@ function Home() {
 
         <Trust  />
 
-        <Footer />
+        <Footer /> */}
     </section>
   )
 }
